@@ -92,4 +92,5 @@ Evaluate source faithfulness, not investment returns: citation correctness, cita
 - Basic Streamlit comparison UI implemented.
 - Current retrieval is temporary keyword matching.
 - Gemini event analysis/query normalisation is implemented. It uses `GEMINI_API_KEY` from a local `.env` file and falls back to the original text if the API is unavailable.
+- Typed text, a public article URL, and a selectable-text PDF are accepted as event inputs. All are converted to event text before Gemini analysis. Scanned PDFs and paywalled/JavaScript-only URLs are not supported yet.
 - Next technical step: replace keyword matching with ChromaDB semantic retrieval, after the real knowledge-record ingestion format is finalised.

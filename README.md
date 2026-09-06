@@ -5,6 +5,7 @@ An evidence-grounded FYP prototype for comparing how Chen's market commentary an
 ## First build target
 
 - Typed English event input
+- Article URL and PDF event input
 - LLM-assisted event analysis/query normalisation
 - Separate Chen and HLIB analysis panels
 - Evidence-linked sector results
@@ -19,4 +20,4 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Data in `data/` is local-only and must not be committed. `sample_data/` contains fictional records solely to exercise the application structure.
+Data in `data/` is local-only and must not be committed. `sample_data/` contains fictional records solely to exercise the application structure. URL extraction works only for publicly readable, static article pages; uploaded scanned PDFs require OCR, which is not included yet.

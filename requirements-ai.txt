@@ -1,6 +1,6 @@
-# Install this later, when semantic retrieval and input ingestion are implemented.
+# Install these when semantic retrieval is implemented.
 chromadb>=0.5
 sentence-transformers>=3.0
 pypdf>=5.0
-requests>=2.31
 beautifulsoup4>=4.12
+requests>=2.31
