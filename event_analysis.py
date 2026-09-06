@@ -20,6 +20,8 @@ class EventAnalysis(BaseModel):
         max_length=5,
         description="Short search phrases for the knowledge bases. Do not state impact direction.",
     )
+    used_fallback: bool = False
+    status_message: str | None = None
 
 
 def analyse_event(event_text: str) -> EventAnalysis:
@@ -29,6 +31,8 @@ def analyse_event(event_text: str) -> EventAnalysis:
     fallback = EventAnalysis(
         event_summary=event_text.strip(),
         retrieval_queries=[event_text.strip()],
+        used_fallback=True,
+        status_message="Gemini event analysis was unavailable; the original text was used for retrieval.",
     )
     if not api_key:
         return fallback
