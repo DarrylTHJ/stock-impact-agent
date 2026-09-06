@@ -91,4 +91,5 @@ Evaluate source faithfulness, not investment returns: citation correctness, cita
 - Fictional sample Chen/HLIB records added.
 - Basic Streamlit comparison UI implemented.
 - Current retrieval is temporary keyword matching.
-- Next technical step: install dependencies, run UI, then add LLM event analysis and ChromaDB retrieval.
+- Gemini event analysis/query normalisation is implemented. It uses `GEMINI_API_KEY` from a local `.env` file and falls back to the original text if the API is unavailable.
+- Next technical step: replace keyword matching with ChromaDB semantic retrieval, after the real knowledge-record ingestion format is finalised.

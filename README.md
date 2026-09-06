@@ -5,6 +5,7 @@ An evidence-grounded FYP prototype for comparing how Chen's market commentary an
 ## First build target
 
 - Typed English event input
+- LLM-assisted event analysis/query normalisation
 - Separate Chen and HLIB analysis panels
 - Evidence-linked sector results
 - Sample knowledge records, before real ingestion is added

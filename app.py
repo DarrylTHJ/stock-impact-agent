@@ -1,5 +1,6 @@
 import streamlit as st
 
+from event_analysis import analyse_event
 from knowledge_store import retrieve_records
 
 
@@ -14,9 +15,9 @@ event_text = st.text_area(
 )
 
 
-def render_source_column(source_name: str) -> None:
+def render_source_column(source_name: str, search_queries: list[str]) -> None:
     st.subheader(source_name)
-    records = retrieve_records(event_text, source_name)
+    records = retrieve_records(search_queries, source_name)
     if not records:
         st.info("No matching knowledge records found.")
         return
@@ -41,10 +42,19 @@ def render_source_column(source_name: str) -> None:
 
 
 if st.button("Analyse event", type="primary", disabled=not event_text.strip()):
+    with st.spinner("Analysing the event wording..."):
+        event_analysis = analyse_event(event_text)
+
+    with st.expander("Event analysis used for retrieval", expanded=False):
+        st.write(event_analysis.event_summary)
+        if event_analysis.location:
+            st.caption(f"Location: {event_analysis.location}")
+        st.caption("Retrieval phrases: " + " | ".join(event_analysis.retrieval_queries))
+
     chen_column, hlib_column = st.columns(2)
     with chen_column:
-        render_source_column("Chen")
+        render_source_column("Chen", event_analysis.retrieval_queries)
     with hlib_column:
-        render_source_column("HLIB Research")
+        render_source_column("HLIB Research", event_analysis.retrieval_queries)
 else:
     st.info("Enter an event and select Analyse event to compare both evidence sources.")

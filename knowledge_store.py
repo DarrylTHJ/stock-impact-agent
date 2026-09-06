@@ -19,9 +19,9 @@ def load_records() -> list[KnowledgeRecord]:
     return [KnowledgeRecord.model_validate(record) for record in raw_records]
 
 
-def retrieve_records(event_text: str, source_name: str, limit: int = 5) -> list[KnowledgeRecord]:
+def retrieve_records(search_queries: list[str], source_name: str, limit: int = 5) -> list[KnowledgeRecord]:
     """Temporary transparent keyword scorer; replace with Chroma retrieval next."""
-    query_words = set(re.findall(r"[a-z]+", event_text.lower()))
+    query_words = set(re.findall(r"[a-z]+", " ".join(search_queries).lower()))
     scored: list[tuple[int, KnowledgeRecord]] = []
 
     for record in load_records():
