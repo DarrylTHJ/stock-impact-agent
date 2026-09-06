@@ -7,3 +7,4 @@ sentence-transformers>=3.0
 pypdf>=5.0
 beautifulsoup4>=4.12
 requests>=2.31
+yt-dlp>=2025.1

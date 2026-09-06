@@ -22,3 +22,25 @@ streamlit run app.py
 ```
 
 Data in `data/` is local-only and must not be committed. `sample_data/` contains fictional records solely to exercise the application structure. URL extraction works only for publicly readable, static article pages; uploaded scanned PDFs require OCR, which is not included yet.
+
+## Collect Chen transcripts
+
+The collector saves one local JSON file per video with metadata and timestamped
+caption segments. It does not call an LLM or create knowledge records.
+
+First, run a one-video test:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\collect_chen_captions.py --limit 1
+```
+
+Then collect the available caption tracks for the full channel:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\collect_chen_captions.py
+```
+
+Files are written to `data/chen_transcripts/`. The accompanying
+`collection_log.jsonl` identifies videos without suitable captions or videos
+that need another attempt. Automatic captions are included only when a manual
+Chinese/English track is unavailable; use `--manual-only` to exclude them.
