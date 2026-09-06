@@ -7,6 +7,7 @@ An evidence-grounded FYP prototype for comparing how Chen's market commentary an
 - Typed English event input
 - Article URL and PDF event input
 - LLM-assisted event analysis/query normalisation
+- ChromaDB semantic retrieval using a local multilingual embedding model
 - Separate Chen and HLIB analysis panels
 - Evidence-linked sector results
 - Sample knowledge records, before real ingestion is added

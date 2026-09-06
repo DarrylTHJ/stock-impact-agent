@@ -90,7 +90,7 @@ Evaluate source faithfulness, not investment returns: citation correctness, cita
 - Data model with controlled Bursa sectors implemented.
 - Fictional sample Chen/HLIB records added.
 - Basic Streamlit comparison UI implemented.
-- Current retrieval is temporary keyword matching.
+- ChromaDB semantic retrieval is implemented with a local multilingual embedding model. It embeds `embedding_summary` values and returns only matching `knowledge_id` values; full evidence continues to come from the local knowledge records.
 - Gemini event analysis/query normalisation is implemented. It uses `GEMINI_API_KEY` from a local `.env` file and falls back to the original text if the API is unavailable.
 - Typed text, a public article URL, and a selectable-text PDF are accepted as event inputs. All are converted to event text before Gemini analysis. Scanned PDFs and paywalled/JavaScript-only URLs are not supported yet.
-- Next technical step: replace keyword matching with ChromaDB semantic retrieval, after the real knowledge-record ingestion format is finalised.
+- Next technical step: add real Chen/HLIB knowledge-record ingestion after finalising the extraction prompt and source metadata.

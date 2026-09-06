@@ -5,10 +5,10 @@ this layer separate means the UI never needs to know where records came from.
 """
 
 import json
-import re
 from pathlib import Path
 
 from models import KnowledgeRecord
+from vector_store import index_records, search_knowledge_ids
 
 
 DATA_FILE = Path(__file__).parent / "sample_data" / "knowledge_records.json"
@@ -20,16 +20,9 @@ def load_records() -> list[KnowledgeRecord]:
 
 
 def retrieve_records(search_queries: list[str], source_name: str, limit: int = 5) -> list[KnowledgeRecord]:
-    """Temporary transparent keyword scorer; replace with Chroma retrieval next."""
-    query_words = set(re.findall(r"[a-z]+", " ".join(search_queries).lower()))
-    scored: list[tuple[int, KnowledgeRecord]] = []
-
-    for record in load_records():
-        if record.source_name != source_name:
-            continue
-        searchable = f"{record.trigger_event} {record.embedding_summary}".lower()
-        score = len(query_words.intersection(re.findall(r"[a-z]+", searchable)))
-        if score:
-            scored.append((score, record))
-
-    return [record for _, record in sorted(scored, key=lambda item: item[0], reverse=True)[:limit]]
+    """Find semantically similar evidence records through ChromaDB."""
+    records = load_records()
+    index_records(records)
+    by_id = {record.knowledge_id: record for record in records}
+    knowledge_ids = search_knowledge_ids(search_queries, source_name, limit)
+    return [by_id[knowledge_id] for knowledge_id in knowledge_ids if knowledge_id in by_id]
