@@ -29,9 +29,10 @@ Core fields:
 
 ```text
 knowledge_id
-knowledge_type: sector_impact | market_context
+knowledge_type: sector_impact | company_impact | market_context
 trigger_event
 impacted_sector: official Bursa sector only for sector_impact
+impacted_industry: optional source-named precision, e.g. Automotive or F&B
 impact_direction: positive | negative | mixed
 reason
 impacted_companies: only when explicitly supported by source evidence
@@ -43,6 +44,8 @@ source_name, source_title, source_date, source_link
 Use the 13 official Bursa sectors: Construction; Consumer Products & Services; Energy; Financial Services; Healthcare; Industrial Products & Services; Plantation; Property; REITs; Technology; Telecommunications & Media; Transportation & Logistics; Utilities.
 
 Broad-market statements are stored as `market_context`, usable for narrative and caveats but not sector/company graph nodes.
+
+Use `company_impact` for a source-supported effect on an explicitly named company or IPO. Do not present this as a whole-sector impact. `impacted_industry` can later be shown in the graph as an industry node connected neutrally to the official Bursa main sector.
 
 ## Offline ingestion plan
 
@@ -97,4 +100,7 @@ Evaluate source faithfulness, not investment returns: citation correctness, cita
 - Gemini connectivity was verified directly. If the Streamlit UI reports that Gemini was unavailable, that specific server process lacks outbound network access; use the network-enabled server instance rather than interpreting it as a wrong API key or failed analysis design.
 - Typed text, a public article URL, and a selectable-text PDF are accepted as event inputs. All are converted to event text before Gemini analysis. Scanned PDFs and paywalled/JavaScript-only URLs are not supported yet.
 - A public YouTube caption collector now exists at `scripts/collect_chen_captions.py`. It stores one ignored local JSON file per Chen video in `data/chen_transcripts/`, including video metadata and timestamped original-language caption segments. It records unavailable/error cases in `collection_log.jsonl`, and uses automatic captions only if no manual Chinese/English caption is available. A one-video test successfully saved a manual Chinese transcript with 621 segments.
+- The completed collection saved 430 captioned Chen videos; 100 videos without supported captions were logged and excluded.
+- `scripts/transform_chen_transcripts.py` sends one full timestamped transcript at a time to Gemini 3.1 Flash-Lite and creates reviewable local drafts. It uses a 45-second delay, checkpoints completed work, and stops on quota/rate-limit errors. Do not start a mass transformation until prompt quality is reviewed on representative videos.
+- `scripts/promote_chen_draft.py` promotes reviewed local drafts into `data/knowledge_records.json` and indexes them in ChromaDB. One Automotive test video is promoted only for local UI testing; its three records cover MBMR/Betamek company context, automotive TIV saturation, and EV disruption.
 - Next technical step: run the collector for the available-caption channel videos, then add real Chen knowledge-record extraction after finalising the extraction prompt and source metadata.

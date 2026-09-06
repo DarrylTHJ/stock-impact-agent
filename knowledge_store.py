@@ -11,12 +11,16 @@ from models import KnowledgeRecord
 from vector_store import index_records, search_knowledge_ids
 
 
-DATA_FILE = Path(__file__).parent / "sample_data" / "knowledge_records.json"
+SAMPLE_DATA_FILE = Path(__file__).parent / "sample_data" / "knowledge_records.json"
+LOCAL_DATA_FILE = Path(__file__).parent / "data" / "knowledge_records.json"
 
 
 def load_records() -> list[KnowledgeRecord]:
-    raw_records = json.loads(DATA_FILE.read_text(encoding="utf-8"))
-    return [KnowledgeRecord.model_validate(record) for record in raw_records]
+    raw_records = json.loads(SAMPLE_DATA_FILE.read_text(encoding="utf-8"))
+    if LOCAL_DATA_FILE.exists():
+        raw_records.extend(json.loads(LOCAL_DATA_FILE.read_text(encoding="utf-8")))
+    by_id = {record["knowledge_id"]: record for record in raw_records}
+    return [KnowledgeRecord.model_validate(record) for record in by_id.values()]
 
 
 def retrieve_records(search_queries: list[str], source_name: str, limit: int = 5) -> list[KnowledgeRecord]:

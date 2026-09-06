@@ -38,7 +38,17 @@ def render_source_column(source_name: str, search_queries: list[str]) -> None:
     for record in records:
         if record.validate_for_graph():
             direction = {"positive": "Positive", "negative": "Negative", "mixed": "Mixed"}[record.impact_direction]
-            st.markdown(f"### {record.impacted_sector}: {direction}")
+            target = record.impacted_sector
+            if record.impacted_industry:
+                target = f"{record.impacted_industry} (within {record.impacted_sector})"
+            st.markdown(f"### {target}: {direction}")
+        elif record.validate_for_company_graph():
+            direction = {"positive": "Positive", "negative": "Negative", "mixed": "Mixed"}[record.impact_direction]
+            companies = ", ".join(company.company_name for company in record.impacted_companies)
+            target = companies
+            if record.impacted_industry:
+                target = f"{companies} ({record.impacted_industry})"
+            st.markdown(f"### {target}: {direction}")
         else:
             st.markdown("### Market context")
 

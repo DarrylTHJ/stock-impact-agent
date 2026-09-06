@@ -44,3 +44,24 @@ Files are written to `data/chen_transcripts/`. The accompanying
 `collection_log.jsonl` identifies videos without suitable captions or videos
 that need another attempt. Automatic captions are included only when a manual
 Chinese/English track is unavailable; use `--manual-only` to exclude them.
+
+## Transform Chen transcripts into review drafts
+
+This step sends a **complete timestamped transcript** to Gemini and creates
+draft knowledge records. It does not add anything to the application database
+until the drafts have been reviewed. The default model is the lightweight
+`gemini-3.1-flash-lite`, with one request every 45 seconds. The run stops on a
+quota/rate-limit response and safely resumes later without repeating completed
+videos.
+
+Start with two videos:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\transform_chen_transcripts.py --limit 2
+```
+
+Drafts and their transformation log are stored in `data/chen_extracted_drafts/`.
+The extractor distinguishes `sector_impact` (a source-supported effect on an
+entire Bursa sector), `company_impact` (an effect only on an explicitly named
+company), and `market_context` (useful narrative that does not create a graph
+impact edge).
