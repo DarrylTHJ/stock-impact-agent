@@ -67,6 +67,58 @@ FULL TRANSCRIPT:
 """
 
 
+def normalise_recovery_payload(payload: dict | list) -> dict:
+    """Accept equivalent Gemini timestamp response shapes before validation."""
+    if isinstance(payload, list):
+        payload = {"findings": payload}
+    for finding in payload.get("findings", []):
+        locations: list[str] = []
+        translations = finding.setdefault("translations", {})
+        for item in finding.get("evidence_locations") or []:
+            if isinstance(item, str):
+                locations.append(item)
+            elif isinstance(item, dict):
+                location = item.get("timestamp_range") or item.get("location")
+                if isinstance(location, str):
+                    locations.append(location)
+                    translation = item.get("translation")
+                    if isinstance(translation, str) and translation.strip():
+                        translations.setdefault(location, translation)
+        finding["evidence_locations"] = locations
+    return payload
+
+
+def translate_missing_evidence(
+    client: genai.Client, model: str, records: list[dict]
+) -> dict[str, str]:
+    """Translate fixed source quotes only when the recovery response omitted it."""
+    items = [
+        {"location": evidence["location"], "quote": evidence["quote"]}
+        for record in records
+        for evidence in record.get("evidence", [])
+        if evidence.get("translation") is None
+    ]
+    if not items:
+        return {}
+    response = client.models.generate_content(
+        model=model,
+        contents=(
+            "Translate each original-language evidence quote below into concise English. "
+            "Return JSON only as {\"translations\": {timestamp: translation}}. "
+            "Preserve the exact timestamp keys and do not add analysis.\n\n"
+            + json.dumps(items, ensure_ascii=False)
+        ),
+        config={"response_mime_type": "application/json", "temperature": 0},
+    )
+    payload = json.loads(response.text)
+    translations = payload.get("translations", {}) if isinstance(payload, dict) else {}
+    return {
+        location: translation
+        for location, translation in translations.items()
+        if isinstance(location, str) and isinstance(translation, str) and translation.strip()
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--video-id", action="append", help="Recover only this video ID; repeatable.")
@@ -137,9 +189,7 @@ def main() -> None:
             response_payload = json.loads(response.text)
             # Gemini occasionally returns the inner list despite the requested
             # wrapper. Accept that equivalent shape, then validate it locally.
-            if isinstance(response_payload, list):
-                response_payload = {"findings": response_payload}
-            findings = RecoveryBatch.model_validate(response_payload).findings
+            findings = RecoveryBatch.model_validate(normalise_recovery_payload(response_payload)).findings
             if {item.candidate_id for item in findings} != {item["candidate_id"] for item in candidates}:
                 raise ValueError(f"{video_id}: recovery response did not cover every pending candidate")
 
@@ -163,6 +213,23 @@ def main() -> None:
             recovered_records.append(recovered)
         recovered_payload = {"records": recovered_records}
         recovered_payload = materialise_evidence_quotes(recovered_payload, transcript["segments"])
+        # Recovery and translation are separate Gemini requests. Preserve the
+        # same conservative spacing used by the coordinator.
+        if any(
+            evidence.get("translation") is None
+            for record in recovered_payload["records"]
+            for evidence in record["evidence"]
+        ):
+            time.sleep(args.delay_seconds)
+        translation_map = translate_missing_evidence(client, args.model, recovered_payload["records"])
+        for record in recovered_payload["records"]:
+            for evidence in record["evidence"]:
+                if evidence.get("translation") is None:
+                    evidence["translation"] = translation_map.get(evidence["location"])
+                if evidence.get("translation") is None:
+                    raise ValueError(
+                        f"{video_id}: no English translation returned for {evidence['location']}"
+                    )
         output_path.write_text(
             json.dumps(
                 {
