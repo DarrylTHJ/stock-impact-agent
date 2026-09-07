@@ -32,7 +32,7 @@ DEFAULT_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_DELAY_SECONDS = 45
 MAX_TRANSCRIPT_CHARACTERS = 70_000
 TIMESTAMP_RANGE_PATTERN = re.compile(
-    r"^(?P<start>\d{2}:\d{2}:\d{2})–(?P<end>\d{2}:\d{2}:\d{2})$"
+    r"^\s*(?P<start>\d{2}:\d{2}:\d{2})\s*[–—−\-\uFFFD]\s*(?P<end>\d{2}:\d{2}:\d{2})\s*$"
 )
 
 
@@ -199,8 +199,11 @@ def materialise_evidence_quotes(payload: dict, segments: list[dict]) -> dict:
             match = TIMESTAMP_RANGE_PATTERN.fullmatch(evidence.get("location") or "")
             if not match:
                 raise ValueError(
-                    "Evidence location must use the exact HH:MM:SS–HH:MM:SS timestamp format"
+                    "Evidence location must contain two HH:MM:SS timestamps"
                 )
+            # Gemini occasionally substitutes a hyphen, em dash, or replacement
+            # character for the en dash. Keep a single canonical representation.
+            evidence["location"] = f"{match.group('start')}–{match.group('end')}"
             start = parse_timestamp(match.group("start"))
             end = parse_timestamp(match.group("end"))
             matching_segments = [
