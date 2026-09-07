@@ -20,7 +20,7 @@ from typing import Literal
 
 from dotenv import load_dotenv
 from google import genai
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_DIR))
@@ -42,8 +42,8 @@ class VerificationFinding(BaseModel):
     direction_supported: bool
     reason_supported: bool
     market_context_supported: bool
-    supported_company_names: list[str]
-    reviewer_note: str
+    supported_company_names: list[str] = Field(default_factory=list)
+    reviewer_note: str = ""
 
 
 class VerificationBatch(BaseModel):
@@ -106,7 +106,10 @@ def verify_batch(client: genai.Client, model: str, candidates: list[dict]) -> Ve
         contents=build_prompt(candidates),
         config={"response_mime_type": "application/json", "temperature": 0},
     )
-    batch = VerificationBatch.model_validate(json.loads(response.text))
+    payload = json.loads(response.text)
+    if isinstance(payload, list):
+        payload = {"findings": payload}
+    batch = VerificationBatch.model_validate(payload)
     expected_ids = {candidate["candidate_id"] for candidate in candidates}
     actual_ids = {finding.candidate_id for finding in batch.findings}
     if actual_ids != expected_ids:
