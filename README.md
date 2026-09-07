@@ -82,3 +82,16 @@ Initial support-check outputs are written to `data/chen_initial_support_checks/`
 After full-transcript recovery and final verification, only files in
 `data/chen_final_verified_records/` can be promoted into the local knowledge
 store and ChromaDB.
+
+## Run the complete Chen pipeline
+
+To proceed from source captions all the way to final verification without
+overlapping Gemini requests, run the coordinator. It resumes from completed
+stages, pauses 45 seconds between model calls, and stops safely on quota or
+network errors.
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_chen_pipeline.py
+```
+
+Its progress log is `data/chen_pipeline_logs/coordinator_log.jsonl`.
