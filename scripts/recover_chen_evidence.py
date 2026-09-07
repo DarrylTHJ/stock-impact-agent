@@ -29,7 +29,7 @@ INITIAL_VERIFICATION_DIR = PROJECT_DIR / "data" / "chen_initial_support_checks"
 RECOVERED_DIR = PROJECT_DIR / "data" / "chen_recovered_evidence"
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_DELAY_SECONDS = 45
-RECOVERY_POLICY_VERSION = "2"
+PIPELINE_VERSION = "3"
 
 
 class RecoveryFinding(BaseModel):
@@ -55,8 +55,9 @@ return an empty evidence_locations array.
 Use only timestamp ranges exactly as shown in the transcript: HH:MM:SS–HH:MM:SS.
 For every returned timestamp range, also provide a concise English translation
 of the original-language source text in a `translations` object, where each key
-is the timestamp range and each value is its translation. Do not translate or
-return a range that you did not select.
+is the timestamp range and each value is its translation. This is mandatory:
+if you cannot provide a translation, return no timestamp range. Do not
+translate or return a range that you did not select.
 Return JSON only as `{{"findings": [...]}}`, with one finding per candidate_id.
 
 CANDIDATES:
@@ -86,37 +87,6 @@ def normalise_recovery_payload(payload: dict | list) -> dict:
                         translations.setdefault(location, translation)
         finding["evidence_locations"] = locations
     return payload
-
-
-def translate_missing_evidence(
-    client: genai.Client, model: str, records: list[dict]
-) -> dict[str, str]:
-    """Translate fixed source quotes only when the recovery response omitted it."""
-    items = [
-        {"location": evidence["location"], "quote": evidence["quote"]}
-        for record in records
-        for evidence in record.get("evidence", [])
-        if evidence.get("translation") is None
-    ]
-    if not items:
-        return {}
-    response = client.models.generate_content(
-        model=model,
-        contents=(
-            "Translate each original-language evidence quote below into concise English. "
-            "Return JSON only as {\"translations\": {timestamp: translation}}. "
-            "Preserve the exact timestamp keys and do not add analysis.\n\n"
-            + json.dumps(items, ensure_ascii=False)
-        ),
-        config={"response_mime_type": "application/json", "temperature": 0},
-    )
-    payload = json.loads(response.text)
-    translations = payload.get("translations", {}) if isinstance(payload, dict) else {}
-    return {
-        location: translation
-        for location, translation in translations.items()
-        if isinstance(location, str) and isinstance(translation, str) and translation.strip()
-    }
 
 
 def main() -> None:
@@ -213,22 +183,11 @@ def main() -> None:
             recovered_records.append(recovered)
         recovered_payload = {"records": recovered_records}
         recovered_payload = materialise_evidence_quotes(recovered_payload, transcript["segments"])
-        # Recovery and translation are separate Gemini requests. Preserve the
-        # same conservative spacing used by the coordinator.
-        if any(
-            evidence.get("translation") is None
-            for record in recovered_payload["records"]
-            for evidence in record["evidence"]
-        ):
-            time.sleep(args.delay_seconds)
-        translation_map = translate_missing_evidence(client, args.model, recovered_payload["records"])
         for record in recovered_payload["records"]:
             for evidence in record["evidence"]:
                 if evidence.get("translation") is None:
-                    evidence["translation"] = translation_map.get(evidence["location"])
-                if evidence.get("translation") is None:
                     raise ValueError(
-                        f"{video_id}: no English translation returned for {evidence['location']}"
+                        f"{video_id}: recovery output omitted translation for {evidence['location']}"
                     )
         output_path.write_text(
             json.dumps(
@@ -236,7 +195,7 @@ def main() -> None:
                     "source_video_id": video_id,
                     "recovered_at_utc": datetime.now(UTC).isoformat(),
                     "recovery_model": args.model,
-                    "recovery_policy_version": RECOVERY_POLICY_VERSION,
+                    "pipeline_version": PIPELINE_VERSION,
                     "records": recovered_payload["records"],
                     "recovery_findings": [item.model_dump() for item in findings],
                 },

@@ -14,6 +14,7 @@ from knowledge_store import LOCAL_DATA_FILE, load_records
 from models import KnowledgeRecord
 from vector_store import index_records
 
+PIPELINE_VERSION = "3"
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -27,6 +28,11 @@ def main() -> None:
             "evidence recovery, and final verification steps first."
         )
     draft = json.loads(draft_path.read_text(encoding="utf-8"))
+    if draft.get("pipeline_version") != PIPELINE_VERSION:
+        raise SystemExit(
+            "This final verification output is from an older pipeline version and cannot be "
+            "promoted. Re-run scripts/run_chen_pipeline.py so it is regenerated as pipeline v3."
+        )
     approved = [KnowledgeRecord.model_validate(record).model_dump(mode="json") for record in draft["records"]]
 
     existing: list[dict] = []

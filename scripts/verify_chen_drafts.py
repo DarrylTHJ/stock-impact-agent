@@ -34,7 +34,7 @@ VERIFIED_DIR = PROJECT_DIR / "data" / "chen_initial_support_checks"
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_BATCH_SIZE = 12
 DEFAULT_DELAY_SECONDS = 45
-VERIFICATION_POLICY_VERSION = "2"
+PIPELINE_VERSION = "3"
 
 
 class VerificationFinding(BaseModel):
@@ -254,7 +254,7 @@ def main() -> None:
                     "source_video_id": draft["source_video_id"],
                     "verified_at_utc": datetime.now(UTC).isoformat(),
                     "verification_model": args.model,
-                    "verification_policy_version": VERIFICATION_POLICY_VERSION,
+                    "pipeline_version": PIPELINE_VERSION,
                     "records": verified_records,
                     "decisions": decisions,
                 },

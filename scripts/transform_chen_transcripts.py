@@ -31,6 +31,7 @@ DEFAULT_OUTPUT_DIR = PROJECT_DIR / "data" / "chen_candidate_records"
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_DELAY_SECONDS = 45
 MAX_TRANSCRIPT_CHARACTERS = 70_000
+PIPELINE_VERSION = "3"
 TIMESTAMP_RANGE_PATTERN = re.compile(
     r"^(?P<start>\d{2}:\d{2}:\d{2})–(?P<end>\d{2}:\d{2}:\d{2})$"
 )
@@ -254,6 +255,7 @@ def save_draft(output_path: Path, source: dict, batch: ExtractionBatch, model: s
                 "source_caption_language": source["caption_language"],
                 "source_caption_is_automatic": source["caption_is_automatic"],
                 "transformed_at_utc": datetime.now(UTC).isoformat(),
+                "pipeline_version": PIPELINE_VERSION,
                 "records": records,
             },
             ensure_ascii=False,
