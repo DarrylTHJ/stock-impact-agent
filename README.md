@@ -65,3 +65,18 @@ The extractor distinguishes `sector_impact` (a source-supported effect on an
 entire Bursa sector), `company_impact` (an effect only on an explicitly named
 company), and `market_context` (useful narrative that does not create a graph
 impact edge).
+
+## Verify drafts before promotion
+
+Verification is a separate gate: it checks whether each candidate's fixed
+source quote supports the claimed target, direction, and reason. Unsupported
+sector/company candidates are demoted to grounded `market_context` only when
+the evidence supports that context; otherwise they are rejected. It can verify
+up to 12 candidate records in one Gemini request.
+
+```powershell
+.\.venv\Scripts\python.exe scripts\verify_chen_drafts.py --video-id 5mxB_Pzjlng
+```
+
+Verified outputs are written to `data/chen_verified_drafts/`. Only verified
+drafts can be promoted into the local knowledge store and ChromaDB.

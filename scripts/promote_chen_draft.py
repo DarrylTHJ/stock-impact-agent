@@ -20,9 +20,11 @@ def main() -> None:
     parser.add_argument("--video-id", required=True, help="Video ID of an already reviewed draft.")
     args = parser.parse_args()
 
-    draft_path = PROJECT_DIR / "data" / "chen_extracted_drafts" / f"{args.video_id}.json"
+    draft_path = PROJECT_DIR / "data" / "chen_verified_drafts" / f"{args.video_id}.json"
     if not draft_path.exists():
-        raise SystemExit(f"Draft not found: {draft_path}")
+        raise SystemExit(
+            f"Verified draft not found: {draft_path}. Run scripts\\verify_chen_drafts.py first."
+        )
     draft = json.loads(draft_path.read_text(encoding="utf-8"))
     approved = [KnowledgeRecord.model_validate(record).model_dump(mode="json") for record in draft["records"]]
 

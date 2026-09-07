@@ -119,13 +119,20 @@ For a sector_impact record:
 - reason must be a concise English causal mechanism grounded in the transcript
 - impacted_industry is optional. Use it only when the source clearly identifies
   a more precise industry, such as Automotive or F&B. Do not invent one.
+- when the source calls out an industry or business category (for example,
+  "telecommunications companies", "technology stocks", or "automotive"),
+  populate impacted_industry with that source-supported category in concise
+  English before mapping it to the official Bursa main sector. Do not leave it
+  null merely because an official sector was selected.
 - evidence must contain one or more exact original-language excerpts and their
   timestamp range in HH:MM:SS–HH:MM:SS format. Use multiple excerpts when the
   claim relies on multiple parts of the video.
 - the timestamp range is mandatory and must be copied from the timestamp labels
   in the supplied transcript. Never use a different format.
 - include impacted_companies only if the speaker explicitly names and connects
-  them to this impact; evidence_indexes are zero-based indexes into evidence.
+  them to this impact in the selected evidence quote; evidence_indexes are
+  zero-based indexes into evidence. Do not add a company merely because it is
+  known to belong to the mentioned sector.
 - embedding_summary must be one concise English retrieval sentence.
 
 For a company_impact record:
