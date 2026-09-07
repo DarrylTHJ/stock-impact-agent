@@ -26,8 +26,8 @@ sys.path.insert(0, str(PROJECT_DIR))
 from models import BURSA_SECTORS, EvidenceItem, ImpactedCompany
 
 
-DEFAULT_INPUT_DIR = PROJECT_DIR / "data" / "chen_transcripts"
-DEFAULT_OUTPUT_DIR = PROJECT_DIR / "data" / "chen_extracted_drafts"
+DEFAULT_INPUT_DIR = PROJECT_DIR / "data" / "chen_source_captions"
+DEFAULT_OUTPUT_DIR = PROJECT_DIR / "data" / "chen_candidate_records"
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_DELAY_SECONDS = 45
 MAX_TRANSCRIPT_CHARACTERS = 70_000

@@ -24,9 +24,9 @@ from transform_chen_transcripts import (
 )
 
 
-DRAFT_DIR = PROJECT_DIR / "data" / "chen_extracted_drafts"
-INITIAL_VERIFICATION_DIR = PROJECT_DIR / "data" / "chen_verified_drafts"
-RECOVERED_DIR = PROJECT_DIR / "data" / "chen_recovered_drafts"
+DRAFT_DIR = PROJECT_DIR / "data" / "chen_candidate_records"
+INITIAL_VERIFICATION_DIR = PROJECT_DIR / "data" / "chen_initial_support_checks"
+RECOVERED_DIR = PROJECT_DIR / "data" / "chen_recovered_evidence"
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_DELAY_SECONDS = 45
 
@@ -98,7 +98,7 @@ def main() -> None:
             continue
         draft_path = DRAFT_DIR / f"{video_id}.json"
         verification_path = INITIAL_VERIFICATION_DIR / f"{video_id}.json"
-        transcript_path = PROJECT_DIR / "data" / "chen_transcripts" / f"{video_id}.json"
+        transcript_path = PROJECT_DIR / "data" / "chen_source_captions" / f"{video_id}.json"
         if not all(path.exists() for path in (draft_path, verification_path, transcript_path)):
             raise SystemExit(f"{video_id}: raw draft, initial verification, or transcript is missing")
 

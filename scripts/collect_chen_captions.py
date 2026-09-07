@@ -22,7 +22,7 @@ import yt_dlp
 
 
 DEFAULT_CHANNEL_URL = "https://www.youtube.com/@AlfredChenOfficial/videos"
-DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parents[1] / "data" / "chen_transcripts"
+DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parents[1] / "data" / "chen_source_captions"
 REQUEST_TIMEOUT_SECONDS = 30
 PAUSE_BETWEEN_VIDEOS_SECONDS = 1
 

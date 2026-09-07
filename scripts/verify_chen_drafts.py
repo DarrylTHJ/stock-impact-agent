@@ -29,8 +29,8 @@ from audit_chen_drafts import audit_draft
 from models import KnowledgeRecord
 
 
-DRAFT_DIR = PROJECT_DIR / "data" / "chen_extracted_drafts"
-VERIFIED_DIR = PROJECT_DIR / "data" / "chen_verified_drafts"
+DRAFT_DIR = PROJECT_DIR / "data" / "chen_candidate_records"
+VERIFIED_DIR = PROJECT_DIR / "data" / "chen_initial_support_checks"
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_BATCH_SIZE = 12
 DEFAULT_DELAY_SECONDS = 45

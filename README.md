@@ -40,7 +40,7 @@ Then collect the available caption tracks for the full channel:
 .\.venv\Scripts\python.exe scripts\collect_chen_captions.py
 ```
 
-Files are written to `data/chen_transcripts/`. The accompanying
+Files are written to `data/chen_source_captions/`. The accompanying
 `collection_log.jsonl` identifies videos without suitable captions or videos
 that need another attempt. Automatic captions are included only when a manual
 Chinese/English track is unavailable; use `--manual-only` to exclude them.
@@ -60,7 +60,7 @@ Start with two videos:
 .\.venv\Scripts\python.exe scripts\transform_chen_transcripts.py --limit 2
 ```
 
-Drafts and their transformation log are stored in `data/chen_extracted_drafts/`.
+Candidate records and their transformation log are stored in `data/chen_candidate_records/`.
 The extractor distinguishes `sector_impact` (a source-supported effect on an
 entire Bursa sector), `company_impact` (an effect only on an explicitly named
 company), and `market_context` (useful narrative that does not create a graph
@@ -78,5 +78,7 @@ up to 12 candidate records in one Gemini request.
 .\.venv\Scripts\python.exe scripts\verify_chen_drafts.py --video-id 5mxB_Pzjlng
 ```
 
-Verified outputs are written to `data/chen_verified_drafts/`. Only verified
-drafts can be promoted into the local knowledge store and ChromaDB.
+Initial support-check outputs are written to `data/chen_initial_support_checks/`.
+After full-transcript recovery and final verification, only files in
+`data/chen_final_verified_records/` can be promoted into the local knowledge
+store and ChromaDB.

@@ -20,7 +20,7 @@ def main() -> None:
     parser.add_argument("--video-id", required=True, help="Video ID of an already reviewed draft.")
     args = parser.parse_args()
 
-    draft_path = PROJECT_DIR / "data" / "chen_final_verified_drafts" / f"{args.video_id}.json"
+    draft_path = PROJECT_DIR / "data" / "chen_final_verified_records" / f"{args.video_id}.json"
     if not draft_path.exists():
         raise SystemExit(
             f"Final verified draft not found: {draft_path}. Run the initial verification, "
