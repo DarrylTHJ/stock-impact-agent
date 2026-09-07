@@ -60,7 +60,7 @@ Start with two videos:
 .\.venv\Scripts\python.exe scripts\transform_chen_transcripts.py --limit 2
 ```
 
-Candidate records and their transformation log are stored in `data/chen_candidate_records/`.
+Extracted knowledge records and their transformation log are stored in `data/chen_knowledge_records/`.
 The extractor distinguishes `sector_impact` (a source-supported effect on an
 entire Bursa sector), `company_impact` (an effect only on an explicitly named
 company), and `market_context` (useful narrative that does not create a graph

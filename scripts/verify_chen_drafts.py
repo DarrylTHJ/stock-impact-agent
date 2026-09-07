@@ -29,7 +29,7 @@ from audit_chen_drafts import audit_draft
 from models import KnowledgeRecord
 
 
-DRAFT_DIR = PROJECT_DIR / "data" / "chen_candidate_records"
+DRAFT_DIR = PROJECT_DIR / "data" / "chen_knowledge_records"
 VERIFIED_DIR = PROJECT_DIR / "data" / "chen_initial_support_checks"
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_BATCH_SIZE = 12

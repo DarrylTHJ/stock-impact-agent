@@ -17,7 +17,7 @@ from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 SOURCE_DIR = PROJECT_DIR / "data" / "chen_source_captions"
-CANDIDATE_DIR = PROJECT_DIR / "data" / "chen_candidate_records"
+CANDIDATE_DIR = PROJECT_DIR / "data" / "chen_knowledge_records"
 INITIAL_DIR = PROJECT_DIR / "data" / "chen_initial_support_checks"
 RECOVERED_DIR = PROJECT_DIR / "data" / "chen_recovered_evidence"
 FINAL_DIR = PROJECT_DIR / "data" / "chen_final_verified_records"

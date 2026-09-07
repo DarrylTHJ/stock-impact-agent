@@ -24,7 +24,7 @@ from transform_chen_transcripts import (
 )
 
 
-DRAFT_DIR = PROJECT_DIR / "data" / "chen_candidate_records"
+DRAFT_DIR = PROJECT_DIR / "data" / "chen_knowledge_records"
 INITIAL_VERIFICATION_DIR = PROJECT_DIR / "data" / "chen_initial_support_checks"
 RECOVERED_DIR = PROJECT_DIR / "data" / "chen_recovered_evidence"
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
