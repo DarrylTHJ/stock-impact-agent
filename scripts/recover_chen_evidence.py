@@ -12,7 +12,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from google import genai
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_DIR))
@@ -29,11 +29,13 @@ INITIAL_VERIFICATION_DIR = PROJECT_DIR / "data" / "chen_initial_support_checks"
 RECOVERED_DIR = PROJECT_DIR / "data" / "chen_recovered_evidence"
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_DELAY_SECONDS = 45
+RECOVERY_POLICY_VERSION = "2"
 
 
 class RecoveryFinding(BaseModel):
     candidate_id: str
     evidence_locations: list[str]
+    translations: dict[str, str] = Field(default_factory=dict)
     note: str = ""
 
 
@@ -51,6 +53,10 @@ described in the source. If no such evidence exists anywhere in the transcript,
 return an empty evidence_locations array.
 
 Use only timestamp ranges exactly as shown in the transcript: HH:MM:SS–HH:MM:SS.
+For every returned timestamp range, also provide a concise English translation
+of the original-language source text in a `translations` object, where each key
+is the timestamp range and each value is its translation. Do not translate or
+return a range that you did not select.
 Return JSON only as `{{"findings": [...]}}`, with one finding per candidate_id.
 
 CANDIDATES:
@@ -144,7 +150,11 @@ def main() -> None:
             finding = by_id.get(record["knowledge_id"])
             if finding:
                 extra_evidence = [
-                    {"quote": "pending source reconstruction", "translation": None, "location": location}
+                    {
+                        "quote": "pending source reconstruction",
+                        "translation": finding.translations.get(location),
+                        "location": location,
+                    }
                     for location in finding.evidence_locations
                     if TIMESTAMP_RANGE_PATTERN.fullmatch(location)
                     and location not in {item["location"] for item in recovered["evidence"]}
@@ -159,6 +169,7 @@ def main() -> None:
                     "source_video_id": video_id,
                     "recovered_at_utc": datetime.now(UTC).isoformat(),
                     "recovery_model": args.model,
+                    "recovery_policy_version": RECOVERY_POLICY_VERSION,
                     "records": recovered_payload["records"],
                     "recovery_findings": [item.model_dump() for item in findings],
                 },

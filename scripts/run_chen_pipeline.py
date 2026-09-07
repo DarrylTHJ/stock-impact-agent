@@ -24,6 +24,8 @@ RECOVERED_DIR = PROJECT_DIR / "data" / "chen_recovered_evidence"
 FINAL_DIR = PROJECT_DIR / "data" / "chen_final_verified_records"
 LOG_DIR = PROJECT_DIR / "data" / "chen_pipeline_logs"
 DEFAULT_DELAY_SECONDS = 45
+VERIFICATION_POLICY_VERSION = "2"
+RECOVERY_POLICY_VERSION = "2"
 
 
 def append_log(entry: dict) -> None:
@@ -61,10 +63,20 @@ def initial_is_final(video_id: str) -> bool:
     return not any(item["status"] == "needs_more_evidence" for item in data["decisions"])
 
 
+def has_current_policy(path: Path, key: str, version: str) -> bool:
+    if not path.exists():
+        return False
+    try:
+        return json.loads(path.read_text(encoding="utf-8")).get(key) == version
+    except (OSError, json.JSONDecodeError):
+        return False
+
+
 def copy_initial_to_final(video_id: str) -> None:
     initial = json.loads((INITIAL_DIR / f"{video_id}.json").read_text(encoding="utf-8"))
     initial["finalised_at_utc"] = datetime.now(UTC).isoformat()
     initial["finalisation_route"] = "initial_support_check_approved_all_records"
+    initial["verification_policy_version"] = VERIFICATION_POLICY_VERSION
     FINAL_DIR.mkdir(parents=True, exist_ok=True)
     (FINAL_DIR / f"{video_id}.json").write_text(
         json.dumps(initial, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -85,7 +97,13 @@ def main() -> None:
         missing = wanted - {path.stem for path in source_paths}
         if missing:
             raise SystemExit(f"Source caption not found: {', '.join(sorted(missing))}")
-    unfinished = [path for path in source_paths if not (FINAL_DIR / path.name).exists()]
+    unfinished = [
+        path
+        for path in source_paths
+        if not has_current_policy(
+            FINAL_DIR / path.name, "verification_policy_version", VERIFICATION_POLICY_VERSION
+        )
+    ]
     if args.limit is not None:
         unfinished = unfinished[: args.limit]
     print(f"Unfinished videos in this run: {len(unfinished)}", flush=True)
@@ -117,9 +135,9 @@ def main() -> None:
                 print(f"[{position}/{len(unfinished)}] {video_id}: audit_failed", flush=True)
                 continue
 
-            if not initial_path.exists():
+            if not has_current_policy(initial_path, "verification_policy_version", VERIFICATION_POLICY_VERSION):
                 ok, output = run_script(
-                    ["scripts/verify_chen_drafts.py", f"--video-id={video_id}"], args.delay_seconds
+                    ["scripts/verify_chen_drafts.py", "--overwrite", f"--video-id={video_id}"], args.delay_seconds
                 )
                 if not ok or not initial_path.exists():
                     raise RuntimeError(output or "Initial support check did not produce a file")
@@ -129,15 +147,18 @@ def main() -> None:
                 print(f"[{position}/{len(unfinished)}] {video_id}: final_verified (no recovery needed)", flush=True)
                 continue
 
-            ok, output = run_script(
-                ["scripts/recover_chen_evidence.py", f"--video-id={video_id}"], args.delay_seconds
-            )
+            recovery_path = RECOVERED_DIR / source_path.name
+            recovery_arguments = ["scripts/recover_chen_evidence.py", f"--video-id={video_id}"]
+            if not has_current_policy(recovery_path, "recovery_policy_version", RECOVERY_POLICY_VERSION):
+                recovery_arguments.insert(1, "--overwrite")
+            ok, output = run_script(recovery_arguments, args.delay_seconds)
             if not ok or not (RECOVERED_DIR / source_path.name).exists():
                 raise RuntimeError(output or "Evidence recovery did not produce a file")
             ok, output = run_script(
                 [
                     "scripts/verify_chen_drafts.py",
                     "--final",
+                    "--overwrite",
                     "--input-dir", "data/chen_recovered_evidence",
                     "--output-dir", "data/chen_final_verified_records",
                     f"--video-id={video_id}",

@@ -34,6 +34,7 @@ VERIFIED_DIR = PROJECT_DIR / "data" / "chen_initial_support_checks"
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_BATCH_SIZE = 12
 DEFAULT_DELAY_SECONDS = 45
+VERIFICATION_POLICY_VERSION = "2"
 
 
 class VerificationFinding(BaseModel):
@@ -91,6 +92,9 @@ For every candidate, decide four booleans:
 A named industry such as Automotive may support that industry, but must not be
 treated as proof that every company in its official Bursa main sector is
 affected. A named company must appear in the evidence to support company impact.
+For a candidate whose knowledge_type is market_context, do not demand a sector
+or company target. Set market_context_supported and reason_supported based on
+the quote; its target/direction booleans are not used by the local policy.
 
 Return JSON only with `findings`. Include exactly one finding for every
 candidate_id. reviewer_note must be short and factual.
@@ -126,6 +130,15 @@ def apply_finding(record: dict, finding: VerificationFinding, final: bool) -> tu
         for company in record.get("impacted_companies", [])
         if company["company_name"] in supported_names
     ]
+    # A record extracted as market context never claims a sector/company target.
+    # It is evaluated only on whether its broad context and explanation are
+    # supported; evidence recovery is reserved for missed sector/company links.
+    if sanitised["knowledge_type"] == "market_context":
+        if finding.market_context_supported and finding.reason_supported:
+            sanitised["impacted_companies"] = []
+            KnowledgeRecord.model_validate(sanitised)
+            return sanitised, "approved_market_context"
+        return None, "rejected_market_context"
     if finding.target_supported and finding.direction_supported and finding.reason_supported:
         if sanitised["knowledge_type"] == "company_impact" and not sanitised["impacted_companies"]:
             return None, "rejected"
@@ -241,6 +254,7 @@ def main() -> None:
                     "source_video_id": draft["source_video_id"],
                     "verified_at_utc": datetime.now(UTC).isoformat(),
                     "verification_model": args.model,
+                    "verification_policy_version": VERIFICATION_POLICY_VERSION,
                     "records": verified_records,
                     "decisions": decisions,
                 },
