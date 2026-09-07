@@ -16,13 +16,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
-SOURCE_DIR = PROJECT_DIR / "data" / "chen_source_captions"
-CANDIDATE_DIR = PROJECT_DIR / "data" / "chen_knowledge_records"
-INITIAL_DIR = PROJECT_DIR / "data" / "chen_initial_support_checks"
-RECOVERED_DIR = PROJECT_DIR / "data" / "chen_recovered_evidence"
-FINAL_DIR = PROJECT_DIR / "data" / "chen_final_verified_records"
+SOURCE_DIR = PROJECT_DIR / "data" / "chen_extracted"
+CANDIDATE_DIR = PROJECT_DIR / "data" / "chen_transformed_initial"
+INITIAL_DIR = PROJECT_DIR / "data" / "chen_transformed_validated"
+RECOVERED_DIR = PROJECT_DIR / "data" / "chen_transformed_revamped"
+FINAL_DIR = PROJECT_DIR / "data" / "chen_transformed_final"
 LOG_DIR = PROJECT_DIR / "data" / "chen_pipeline_logs"
-PIPELINE_VERSION = "3"
 DEFAULT_VIDEO_BATCH_SIZE = 6
 DEFAULT_DELAY_SECONDS = 45
 
@@ -50,10 +49,7 @@ def run(arguments: list[str], delay_seconds: int, gemini: bool) -> tuple[bool, s
 
 
 def is_current(path: Path) -> bool:
-    try:
-        return json.loads(path.read_text(encoding="utf-8")).get("pipeline_version") == PIPELINE_VERSION
-    except (OSError, json.JSONDecodeError):
-        return False
+    return path.exists()
 
 
 def flags(ids: list[str]) -> list[str]:
@@ -66,7 +62,7 @@ def decisions(directory: Path, video_id: str) -> list[dict]:
 
 def copy_initial_final(video_id: str) -> None:
     data = json.loads((INITIAL_DIR / f"{video_id}.json").read_text(encoding="utf-8"))
-    data.update({"pipeline_version": PIPELINE_VERSION, "finalised_at_utc": datetime.now(UTC).isoformat(), "finalisation_route": "initial_support_check_approved_all_records"})
+    data.update({"finalised_at_utc": datetime.now(UTC).isoformat(), "finalisation_route": "initial_support_check_approved_all_records"})
     FINAL_DIR.mkdir(parents=True, exist_ok=True)
     (FINAL_DIR / f"{video_id}.json").write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -86,7 +82,7 @@ def main() -> None:
     pending = [path for path in sources if not is_current(FINAL_DIR / path.name)]
     if args.limit is not None:
         pending = pending[: args.limit]
-    print(f"Pipeline v{PIPELINE_VERSION}; unfinished videos: {len(pending)}", flush=True)
+    print(f"Unfinished videos: {len(pending)}", flush=True)
 
     for start in range(0, len(pending), args.video_batch_size):
         batch = pending[start : start + args.video_batch_size]
@@ -131,7 +127,7 @@ def main() -> None:
                         raise RuntimeError(f"{video_id}: recovery stopped: {output[-300:]}")
 
             if recovery_ids:
-                ok, output = run(["scripts/verify_chen_drafts.py", "--final", "--overwrite", "--input-dir", "data/chen_recovered_evidence", "--output-dir", "data/chen_final_verified_records", *flags(recovery_ids)], args.delay_seconds, True)
+                ok, output = run(["scripts/verify_chen_drafts.py", "--final", "--overwrite", "--input-dir", "data/chen_transformed_revamped", "--output-dir", "data/chen_transformed_final", *flags(recovery_ids)], args.delay_seconds, True)
                 if not ok:
                     raise RuntimeError(f"final verification stopped: {output[-300:]}")
                 for video_id in recovery_ids:

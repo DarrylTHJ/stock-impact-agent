@@ -19,8 +19,8 @@ sys.path.insert(0, str(PROJECT_DIR))
 from models import KnowledgeRecord
 
 
-DRAFT_DIR = PROJECT_DIR / "data" / "chen_knowledge_records"
-TRANSCRIPT_DIR = PROJECT_DIR / "data" / "chen_source_captions"
+DRAFT_DIR = PROJECT_DIR / "data" / "chen_transformed_initial"
+TRANSCRIPT_DIR = PROJECT_DIR / "data" / "chen_extracted"
 TIMESTAMP_PATTERN = re.compile(r"^\d{2}:\d{2}:\d{2}–\d{2}:\d{2}:\d{2}$")
 
 

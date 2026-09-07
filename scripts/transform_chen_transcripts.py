@@ -26,12 +26,11 @@ sys.path.insert(0, str(PROJECT_DIR))
 from models import BURSA_SECTORS, EvidenceItem, ImpactedCompany
 
 
-DEFAULT_INPUT_DIR = PROJECT_DIR / "data" / "chen_source_captions"
-DEFAULT_OUTPUT_DIR = PROJECT_DIR / "data" / "chen_knowledge_records"
+DEFAULT_INPUT_DIR = PROJECT_DIR / "data" / "chen_extracted"
+DEFAULT_OUTPUT_DIR = PROJECT_DIR / "data" / "chen_transformed_initial"
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_DELAY_SECONDS = 45
 MAX_TRANSCRIPT_CHARACTERS = 70_000
-PIPELINE_VERSION = "3"
 TIMESTAMP_RANGE_PATTERN = re.compile(
     r"^(?P<start>\d{2}:\d{2}:\d{2})–(?P<end>\d{2}:\d{2}:\d{2})$"
 )
@@ -255,7 +254,6 @@ def save_draft(output_path: Path, source: dict, batch: ExtractionBatch, model: s
                 "source_caption_language": source["caption_language"],
                 "source_caption_is_automatic": source["caption_is_automatic"],
                 "transformed_at_utc": datetime.now(UTC).isoformat(),
-                "pipeline_version": PIPELINE_VERSION,
                 "records": records,
             },
             ensure_ascii=False,
@@ -303,17 +301,10 @@ def main() -> None:
         missing_ids = wanted_ids - {path.stem for path in source_paths}
         if missing_ids:
             raise SystemExit(f"No collected transcript found for: {', '.join(sorted(missing_ids))}")
-    def is_current_draft(path: Path) -> bool:
-        """A draft without the current pipeline marker is deliberately redone."""
-        try:
-            return json.loads(path.read_text(encoding="utf-8")).get("pipeline_version") == PIPELINE_VERSION
-        except (OSError, json.JSONDecodeError):
-            return False
-
     pending = [
         path
         for path in source_paths
-        if args.overwrite or not is_current_draft(args.output_dir / path.name)
+        if args.overwrite or not (args.output_dir / path.name).exists()
     ]
     if args.limit is not None:
         pending = pending[: args.limit]

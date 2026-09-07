@@ -29,12 +29,11 @@ from audit_chen_drafts import audit_draft
 from models import KnowledgeRecord
 
 
-DRAFT_DIR = PROJECT_DIR / "data" / "chen_knowledge_records"
-VERIFIED_DIR = PROJECT_DIR / "data" / "chen_initial_support_checks"
+DRAFT_DIR = PROJECT_DIR / "data" / "chen_transformed_initial"
+VERIFIED_DIR = PROJECT_DIR / "data" / "chen_transformed_validated"
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_BATCH_SIZE = 12
 DEFAULT_DELAY_SECONDS = 45
-PIPELINE_VERSION = "3"
 
 
 class VerificationFinding(BaseModel):
@@ -254,7 +253,6 @@ def main() -> None:
                     "source_video_id": draft["source_video_id"],
                     "verified_at_utc": datetime.now(UTC).isoformat(),
                     "verification_model": args.model,
-                    "pipeline_version": PIPELINE_VERSION,
                     "records": verified_records,
                     "decisions": decisions,
                 },
