@@ -114,7 +114,7 @@ def verify_batch(client: genai.Client, model: str, candidates: list[dict]) -> Ve
     return batch
 
 
-def apply_finding(record: dict, finding: VerificationFinding) -> tuple[dict | None, str]:
+def apply_finding(record: dict, finding: VerificationFinding, final: bool) -> tuple[dict | None, str]:
     """Apply the conservative local approval policy to a verifier finding."""
     supported_names = set(finding.supported_company_names)
     sanitised = dict(record)
@@ -128,6 +128,8 @@ def apply_finding(record: dict, finding: VerificationFinding) -> tuple[dict | No
             return None, "rejected"
         KnowledgeRecord.model_validate(sanitised)
         return sanitised, "approved"
+    if not final:
+        return None, "needs_more_evidence"
     if finding.market_context_supported and finding.reason_supported:
         demoted = dict(sanitised)
         demoted.update(
@@ -156,15 +158,27 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
     parser.add_argument("--delay-seconds", type=int, default=DEFAULT_DELAY_SECONDS)
     parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument(
+        "--input-dir", type=Path, default=DRAFT_DIR,
+        help="Candidate drafts to verify. Use recovered drafts for final verification.",
+    )
+    parser.add_argument(
+        "--output-dir", type=Path, default=VERIFIED_DIR,
+        help="Directory for verification decisions and promotable records.",
+    )
+    parser.add_argument(
+        "--final", action="store_true",
+        help="Allow the second-pass verifier to demote to market context or reject.",
+    )
     args = parser.parse_args()
 
     load_dotenv(PROJECT_DIR / ".env")
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise SystemExit("GEMINI_API_KEY is missing from the local .env file.")
-    VERIFIED_DIR.mkdir(parents=True, exist_ok=True)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    paths = sorted(DRAFT_DIR.glob("*.json"))
+    paths = sorted(args.input_dir.glob("*.json"))
     if args.video_id:
         wanted = set(args.video_id)
         paths = [path for path in paths if path.stem in wanted]
@@ -172,7 +186,7 @@ def main() -> None:
         if missing:
             raise SystemExit(f"Draft not found: {', '.join(sorted(missing))}")
     if not args.overwrite:
-        paths = [path for path in paths if not (VERIFIED_DIR / path.name).exists()]
+        paths = [path for path in paths if not (args.output_dir / path.name).exists()]
     eligible: list[Path] = []
     for path in paths:
         findings = audit_draft(path)
@@ -202,7 +216,7 @@ def main() -> None:
         for finding in verification.findings:
             record = next(item for item in batch_candidates if item["candidate_id"] == finding.candidate_id)
             original = source_records[finding.candidate_id.split(":", 1)[0]][1][int(finding.candidate_id.rsplit(":", 1)[1])]
-            _, status = apply_finding(original, finding)
+            _, status = apply_finding(original, finding, args.final)
             outcomes[finding.candidate_id] = (finding, status)
         print(f"Verification batch {batch_index}: {len(batch_candidates)} candidate(s) checked", flush=True)
         if batch_index * args.batch_size < len(candidates):
@@ -214,11 +228,11 @@ def main() -> None:
         for record_index, record in enumerate(records):
             candidate_id = f"{filename}:{record_index}"
             finding, status = outcomes[candidate_id]
-            promoted, _ = apply_finding(record, finding)
+            promoted, _ = apply_finding(record, finding, args.final)
             if promoted is not None:
                 verified_records.append(promoted)
             decisions.append({"knowledge_id": record["knowledge_id"], "status": status, **finding.model_dump()})
-        (VERIFIED_DIR / filename).write_text(
+        (args.output_dir / filename).write_text(
             json.dumps(
                 {
                     "source_video_id": draft["source_video_id"],
