@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from datetime import UTC, datetime
@@ -30,6 +31,9 @@ DEFAULT_OUTPUT_DIR = PROJECT_DIR / "data" / "chen_extracted_drafts"
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_DELAY_SECONDS = 45
 MAX_TRANSCRIPT_CHARACTERS = 70_000
+TIMESTAMP_RANGE_PATTERN = re.compile(
+    r"^(?P<start>\d{2}:\d{2}:\d{2})–(?P<end>\d{2}:\d{2}:\d{2})$"
+)
 
 
 class DraftRecord(BaseModel):
@@ -68,6 +72,11 @@ def format_seconds(value: float) -> str:
     minutes, seconds = divmod(int(value), 60)
     hours, minutes = divmod(minutes, 60)
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+
+def parse_timestamp(value: str) -> float:
+    hours, minutes, seconds = value.split(":")
+    return int(hours) * 3600 + int(minutes) * 60 + int(seconds)
 
 
 def format_transcript(segments: list[dict]) -> str:
@@ -113,6 +122,8 @@ For a sector_impact record:
 - evidence must contain one or more exact original-language excerpts and their
   timestamp range in HH:MM:SS–HH:MM:SS format. Use multiple excerpts when the
   claim relies on multiple parts of the video.
+- the timestamp range is mandatory and must be copied from the timestamp labels
+  in the supplied transcript. Never use a different format.
 - include impacted_companies only if the speaker explicitly names and connects
   them to this impact; evidence_indexes are zero-based indexes into evidence.
 - embedding_summary must be one concise English retrieval sentence.
@@ -169,6 +180,33 @@ def normalise_scope_fields(payload: dict) -> dict:
     return payload
 
 
+def materialise_evidence_quotes(payload: dict, segments: list[dict]) -> dict:
+    """Replace LLM-written quotes with text copied directly from source captions.
+
+    The LLM selects an evidence time range, but it can add punctuation or
+    accidentally paraphrase Chinese text. The user-facing quote must instead be
+    reconstructed from the original caption segments in that exact interval.
+    """
+    for record in payload.get("records", []):
+        for evidence in record.get("evidence") or []:
+            match = TIMESTAMP_RANGE_PATTERN.fullmatch(evidence.get("location") or "")
+            if not match:
+                raise ValueError(
+                    "Evidence location must use the exact HH:MM:SS–HH:MM:SS timestamp format"
+                )
+            start = parse_timestamp(match.group("start"))
+            end = parse_timestamp(match.group("end"))
+            matching_segments = [
+                segment["text_original"]
+                for segment in segments
+                if segment["end_seconds"] >= start and segment["start_seconds"] <= end
+            ]
+            if not matching_segments:
+                raise ValueError(f"No source caption segments found for evidence range {evidence['location']}")
+            evidence["quote"] = " ".join(matching_segments)
+    return payload
+
+
 def append_log(path: Path, entry: dict) -> None:
     with path.open("a", encoding="utf-8") as file:
         file.write(json.dumps(entry, ensure_ascii=False) + "\n")
@@ -183,7 +221,8 @@ def extract_one(client: genai.Client, model: str, source: dict) -> ExtractionBat
             "temperature": 0,
         },
     )
-    return ExtractionBatch.model_validate(normalise_scope_fields(json.loads(response.text)))
+    payload = normalise_scope_fields(json.loads(response.text))
+    return ExtractionBatch.model_validate(materialise_evidence_quotes(payload, source["segments"]))
 
 
 def save_draft(output_path: Path, source: dict, batch: ExtractionBatch, model: str) -> None:
