@@ -303,10 +303,17 @@ def main() -> None:
         missing_ids = wanted_ids - {path.stem for path in source_paths}
         if missing_ids:
             raise SystemExit(f"No collected transcript found for: {', '.join(sorted(missing_ids))}")
+    def is_current_draft(path: Path) -> bool:
+        """A draft without the current pipeline marker is deliberately redone."""
+        try:
+            return json.loads(path.read_text(encoding="utf-8")).get("pipeline_version") == PIPELINE_VERSION
+        except (OSError, json.JSONDecodeError):
+            return False
+
     pending = [
         path
         for path in source_paths
-        if args.overwrite or not (args.output_dir / path.name).exists()
+        if args.overwrite or not is_current_draft(args.output_dir / path.name)
     ]
     if args.limit is not None:
         pending = pending[: args.limit]
