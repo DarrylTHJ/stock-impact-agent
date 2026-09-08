@@ -77,7 +77,10 @@ def from_url(url: str) -> EventSource:
     for element in soup.find_all(attrs={"role": "navigation"}):
         element.decompose()
     for element in soup.find_all(True):
-        labels = " ".join(element.get("class", [])) + " " + (element.get("id") or "")
+        # A parent may have been removed earlier in this loop, leaving one of
+        # its descendant tags detached with attrs=None.
+        attrs = element.attrs or {}
+        labels = " ".join(attrs.get("class") or []) + " " + (attrs.get("id") or "")
         if any(token in labels.lower() for token in ("breadcrumb", "cookie", "menu", "navbar", "sidebar", "site-header", "site-footer")):
             element.decompose()
 
