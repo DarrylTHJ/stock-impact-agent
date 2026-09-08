@@ -61,6 +61,22 @@ Start with two videos:
 ```
 
 Initial transformed knowledge records and their log are stored in `data/chen_transformed_initial/`.
+
+### HLIB reports
+
+Place original HLIB PDFs in `data/hlib_source/`. Extract all reports locally,
+preserving page numbers, with:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\extract_hlib_pdfs.py
+```
+
+The extracted page text is stored in `data/hlib_extracted/`. Initial Gemini
+transformation is resumable and writes to `data/hlib_transformed_initial/`:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\transform_hlib_reports.py
+```
 The extractor distinguishes `sector_impact` (a source-supported effect on an
 entire Bursa sector), `company_impact` (an effect only on an explicitly named
 company), and `market_context` (useful narrative that does not create a graph
