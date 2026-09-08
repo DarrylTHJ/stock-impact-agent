@@ -34,6 +34,8 @@ MAX_TRANSCRIPT_CHARACTERS = 70_000
 TIMESTAMP_RANGE_PATTERN = re.compile(
     r"^\s*(?P<start>\d{2}:\d{2}:\d{2})\s*[–—−\-\uFFFD]\s*(?P<end>\d{2}:\d{2}:\d{2})\s*$"
 )
+TIMESTAMP_TOKEN_PATTERN = re.compile(r"\b(?P<timestamp>\d{1,2}:\d{2}:\d{2})\b")
+DIAGNOSTIC_LOG = PROJECT_DIR / "data" / "chen_pipeline_logs" / "invalid_evidence_responses.jsonl"
 
 
 class DraftRecord(BaseModel):
@@ -76,7 +78,26 @@ def format_seconds(value: float) -> str:
 
 def parse_timestamp(value: str) -> float:
     hours, minutes, seconds = value.split(":")
+    if not (0 <= int(minutes) < 60 and 0 <= int(seconds) < 60):
+        raise ValueError(f"Invalid timestamp value: {value}")
     return int(hours) * 3600 + int(minutes) * 60 + int(seconds)
+
+
+def normalise_evidence_location(value: str) -> str:
+    """Convert Gemini's common timestamp variants to a canonical range.
+
+    Two timestamp tokens may be separated by prose, punctuation, or a nonstandard
+    dash. A single timestamp identifies the caption segment at that point. The
+    function deliberately rejects values with no timestamp at all.
+    """
+    matches = [match.group("timestamp") for match in TIMESTAMP_TOKEN_PATTERN.finditer(value or "")]
+    if not matches:
+        raise ValueError("Evidence location contains no HH:MM:SS timestamp")
+    start = matches[0].zfill(8)
+    end = (matches[1] if len(matches) > 1 else matches[0]).zfill(8)
+    if parse_timestamp(start) > parse_timestamp(end):
+        start, end = end, start
+    return f"{start}–{end}"
 
 
 def format_transcript(segments: list[dict]) -> str:
@@ -196,14 +217,9 @@ def materialise_evidence_quotes(payload: dict, segments: list[dict]) -> dict:
     """
     for record in payload.get("records", []):
         for evidence in record.get("evidence") or []:
-            match = TIMESTAMP_RANGE_PATTERN.fullmatch(evidence.get("location") or "")
-            if not match:
-                raise ValueError(
-                    "Evidence location must contain two HH:MM:SS timestamps"
-                )
-            # Gemini occasionally substitutes a hyphen, em dash, or replacement
-            # character for the en dash. Keep a single canonical representation.
-            evidence["location"] = f"{match.group('start')}–{match.group('end')}"
+            evidence["location"] = normalise_evidence_location(evidence.get("location") or "")
+            match = TIMESTAMP_RANGE_PATTERN.fullmatch(evidence["location"])
+            assert match is not None
             start = parse_timestamp(match.group("start"))
             end = parse_timestamp(match.group("end"))
             matching_segments = [
@@ -232,7 +248,18 @@ def extract_one(client: genai.Client, model: str, source: dict) -> ExtractionBat
         },
     )
     payload = normalise_scope_fields(json.loads(response.text))
-    return ExtractionBatch.model_validate(materialise_evidence_quotes(payload, source["segments"]))
+    try:
+        grounded = materialise_evidence_quotes(payload, source["segments"])
+    except ValueError as error:
+        DIAGNOSTIC_LOG.parent.mkdir(parents=True, exist_ok=True)
+        with DIAGNOSTIC_LOG.open("a", encoding="utf-8") as file:
+            file.write(json.dumps({
+                "video_id": source["video_id"],
+                "error": str(error),
+                "raw_model_response": response.text,
+            }, ensure_ascii=False) + "\n")
+        raise
+    return ExtractionBatch.model_validate(grounded)
 
 
 def save_draft(output_path: Path, source: dict, batch: ExtractionBatch, model: str) -> None:
