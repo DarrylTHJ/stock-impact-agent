@@ -82,6 +82,8 @@ if st.button("Analyse event", type="primary", disabled=not has_input):
     st.caption(event_source.label)
     if event_source.warning:
         st.info(event_source.warning)
+    with st.expander("Extracted event text preview", expanded=False):
+        st.write(event_source.text[:1_500])
 
     with st.spinner("Analysing the event wording..."):
         event_analysis = analyse_event(event_source.text)

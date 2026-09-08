@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from io import BytesIO
+import json
 
 import requests
 from bs4 import BeautifulSoup
@@ -22,6 +23,43 @@ def from_typed_text(text: str) -> EventSource:
     return EventSource(text=text.strip(), label="Typed event description")
 
 
+def json_ld_article_body(soup: BeautifulSoup) -> str | None:
+    """Return an articleBody value when a publisher exposes one in JSON-LD."""
+    def find_body(value: object) -> str | None:
+        if isinstance(value, dict):
+            body = value.get("articleBody")
+            if isinstance(body, str) and body.strip():
+                return body.strip()
+            for child in value.values():
+                found = find_body(child)
+                if found:
+                    return found
+        elif isinstance(value, list):
+            for child in value:
+                found = find_body(child)
+                if found:
+                    return found
+        return None
+
+    for tag in soup.find_all("script", type="application/ld+json"):
+        try:
+            found = find_body(json.loads(tag.get_text()))
+            if found:
+                return found
+        except json.JSONDecodeError:
+            continue
+    return None
+
+
+def readable_text(node: object) -> str:
+    """Prefer prose blocks over menu labels and page chrome."""
+    if not hasattr(node, "find_all"):
+        return ""
+    blocks = node.find_all(["h1", "h2", "p"])
+    text = " ".join(block.get_text(" ", strip=True) for block in blocks)
+    return text.strip()
+
+
 def from_url(url: str) -> EventSource:
     if not url.startswith(("https://", "http://")):
         raise ValueError("Enter a complete URL beginning with https:// or http://.")
@@ -33,12 +71,26 @@ def from_url(url: str) -> EventSource:
     )
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
-    for element in soup(["script", "style", "nav", "footer", "header", "aside"]):
+    structured_article = json_ld_article_body(soup)
+    for element in soup(["script", "style", "nav", "footer", "header", "aside", "form"]):
         element.decompose()
-    content = soup.find("article") or soup.find("main") or soup.body
-    text = content.get_text(" ", strip=True) if content else ""
-    if not text:
-        raise ValueError("No readable article text was found at this URL.")
+    for element in soup.find_all(attrs={"role": "navigation"}):
+        element.decompose()
+    for element in soup.find_all(True):
+        labels = " ".join(element.get("class", [])) + " " + (element.get("id") or "")
+        if any(token in labels.lower() for token in ("breadcrumb", "cookie", "menu", "navbar", "sidebar", "site-header", "site-footer")):
+            element.decompose()
+
+    candidates = soup.find_all("article")
+    candidates.extend(soup.select("[itemprop='articleBody'], .article-body, .article-content, .story-body, .post-content"))
+    candidates.extend(soup.find_all("main"))
+    extracted = [readable_text(candidate) for candidate in candidates]
+    text = structured_article or max(extracted, key=len, default="")
+    if len(text) < 120:
+        raise ValueError(
+            "This URL did not expose enough readable article text. It may be a homepage, "
+            "a navigation page, paywalled, or JavaScript-rendered. Paste the event text instead."
+        )
     return EventSource(
         text=text[:MAX_EVENT_TEXT_LENGTH],
         label=f"Article URL: {url}",
