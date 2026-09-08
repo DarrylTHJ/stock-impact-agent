@@ -27,7 +27,7 @@ class EventAnalysis(BaseModel):
 def analyse_event(event_text: str) -> EventAnalysis:
     """Use Gemini for query normalisation, with a safe non-LLM fallback."""
     load_dotenv()
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY2")
     fallback = EventAnalysis(
         event_summary=event_text.strip(),
         retrieval_queries=[event_text.strip()],
@@ -48,7 +48,9 @@ Event: {event_text}
     try:
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            # gemini-2.5-flash is retired for newly created projects. This
+            # lightweight current model is sufficient for query normalisation.
+            model="gemini-3.1-flash-lite",
             contents=prompt,
             config={
                 "response_mime_type": "application/json",
