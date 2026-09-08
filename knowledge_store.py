@@ -16,7 +16,9 @@ LOCAL_DATA_FILE = Path(__file__).parent / "data" / "knowledge_records.json"
 
 
 def load_records() -> list[KnowledgeRecord]:
-    raw_records = json.loads(SAMPLE_DATA_FILE.read_text(encoding="utf-8"))
+    raw_records: list[dict] = []
+    if SAMPLE_DATA_FILE.exists():
+        raw_records = json.loads(SAMPLE_DATA_FILE.read_text(encoding="utf-8"))
     if LOCAL_DATA_FILE.exists():
         raw_records.extend(json.loads(LOCAL_DATA_FILE.read_text(encoding="utf-8")))
     by_id = {record["knowledge_id"]: record for record in raw_records}
