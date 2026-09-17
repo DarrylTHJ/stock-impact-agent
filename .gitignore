@@ -4,3 +4,6 @@ __pycache__/
 chroma_db/
 data/
 *.pyc
+output/
+tmp/
+stock-impact-agent-runtime-data*.zip

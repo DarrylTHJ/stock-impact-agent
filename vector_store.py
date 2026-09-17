@@ -4,13 +4,8 @@ Chroma holds vectors and light filtering metadata only. The complete evidence
 record remains in the local JSON source of truth and is loaded by knowledge_id.
 """
 
-import os
 from functools import lru_cache
 from pathlib import Path
-
-# The model is downloaded once during setup; subsequent app starts use the
-# local cache instead of making an unnecessary network request.
-os.environ.setdefault("HF_HUB_OFFLINE", "1")
 
 import chromadb
 from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
@@ -36,7 +31,7 @@ class LocalEmbeddingFunction(EmbeddingFunction[Documents]):
 
 @lru_cache(maxsize=1)
 def get_embedding_function() -> LocalEmbeddingFunction:
-    """Keep the local model in memory for the duration of the app process."""
+    """Load the model once and let SentenceTransformer download it if absent."""
     return LocalEmbeddingFunction()
 
 

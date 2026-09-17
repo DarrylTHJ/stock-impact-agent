@@ -26,6 +26,25 @@ STAGES = [
 ]
 
 st.set_page_config(page_title="Stock Investment Event-Impact Agent", page_icon="📈", layout="wide")
+
+required_runtime_paths = {
+    "structured knowledge records": ROOT / "data" / "knowledge_records.json",
+    "ChromaDB vector index": ROOT / "chroma_db",
+    "Chen source transcripts": ROOT / "data" / "chen_extracted",
+    "HLIB source reports": ROOT / "data" / "hlib_source",
+}
+missing_runtime_paths = [
+    label for label, path in required_runtime_paths.items() if not path.exists()
+]
+if missing_runtime_paths:
+    st.error(
+        "Runtime data is missing: "
+        + ", ".join(missing_runtime_paths)
+        + ". Extract stock-impact-agent-runtime-data.zip into the project root, "
+        "then restart the application."
+    )
+    st.stop()
+
 st.markdown("""
 <style>
 .stApp{background:#f4f7fb;color:#182230}.block-container{max-width:1500px;padding-top:.7rem}

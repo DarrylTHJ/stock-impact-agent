@@ -1,103 +1,136 @@
 # Bursa Malaysia Event-Impact Explorer
 
-An LLM-based dual-source system for analysing how a news event may affect Bursa Malaysia sectors and listed companies. It retrieves and compares evidence from two separate knowledge bases:
+An LLM-based dual-source research prototype that analyses how a news event may affect Bursa Malaysia sectors and listed companies. It retrieves and compares evidence from Alfred Chen's market commentary and HLIB Research reports.
 
-- Alfred Chen's market commentary
-- HLIB Research reports
-
-The system is a research prototype. Its output is not investment advice.
+The output is not investment advice.
 
 ## What the system does
 
 1. Accepts a typed event, article URL, or PDF upload.
 2. Uses Gemini to create a factual summary and up to five neutral retrieval queries.
-3. Searches a local ChromaDB vector database for similar Chen and HLIB knowledge records.
-4. Classifies each candidate as Direct, Applicable Rule, General Background, or Irrelevant.
-5. Retrieves surrounding transcript context for Direct Alfred Chen records.
-6. Produces separate source analyses, then compares them and displays a causal graph.
+3. Searches a local ChromaDB vector database for Chen and HLIB knowledge records.
+4. Classifies candidates as Direct, Applicable Rule, General Background, or Irrelevant.
+5. Loads surrounding transcript context for Direct Alfred Chen records.
+6. Produces separate source analyses, compares them, and displays a causal graph.
 
-## Requirements
+## Files supplied separately
 
-- Python 3.10 or newer
-- A Gemini API key
-- Internet access for Gemini calls and article-URL extraction
+The GitHub repository contains the source code. The populated local knowledge base is supplied separately as:
 
-## Setup
+`stock-impact-agent-runtime-data.zip`
 
-Open PowerShell in the project folder and create a virtual environment:
+The ZIP contains the following paths in the correct project structure:
+
+- `data/knowledge_records.json` - 1,560 structured knowledge records
+- `data/chen_extracted/` - timestamped Chen transcripts used for context enrichment
+- `data/hlib_source/` - original HLIB PDFs used for source-evidence downloads
+- `chroma_db/` - the corresponding semantic-search index
+
+Do not rename these folders after extraction. Do not publish the runtime bundle publicly unless you have permission to redistribute all included source reports.
+
+## Fresh-clone setup on Windows
+
+### 1. Clone the repository
+
+```powershell
+git clone https://github.com/DarrylTHJ/stock-impact-agent.git
+cd stock-impact-agent
+```
+
+### 2. Add the runtime data
+
+Place `stock-impact-agent-runtime-data.zip` anywhere on the computer, then extract it into the cloned project root. For example:
+
+```powershell
+Expand-Archive -LiteralPath "C:\path\to\stock-impact-agent-runtime-data.zip" -DestinationPath . -Force
+```
+
+After extraction, these checks should all return `True`:
+
+```powershell
+Test-Path .\data\knowledge_records.json
+Test-Path .\data\chen_extracted
+Test-Path .\data\hlib_source
+Test-Path .\chroma_db
+```
+
+### 3. Create the Python environment
+
+Python 3.10 or newer is required.
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Create a `.env` file in the project root and add your Gemini API key:
+### 4. Add the Gemini API key
+
+Create a file named `.env` in the project root:
 
 ```env
 GEMINI_API_KEY2=your_gemini_api_key_here
 ```
 
-Do not commit or submit the `.env` file.
+The `.env` file is ignored by Git and must not be committed. Each user should supply their own Gemini API key.
 
-## Start the application
+### 5. Start the application
 
 ```powershell
 streamlit run app.py
 ```
 
-Streamlit will display a local URL, normally `http://localhost:8501`. Open it in a browser.
+Streamlit normally opens `http://localhost:8501` automatically.
 
-## Included knowledge base
+On the first run, `sentence-transformers` downloads `paraphrase-multilingual-MiniLM-L12-v2`. This requires an internet connection and may take several minutes. Later runs use the locally cached model. Gemini analysis and article-URL extraction also require internet access.
 
-The submitted project includes:
+## Minimum runtime requirements
 
-- `data/knowledge_records.json` - complete structured knowledge records
-- `chroma_db/` - the corresponding semantic-search index
-- `data/chen_extracted/` - timestamped Chen transcripts used for Direct-record context
-- `data/hlib_source/` - original HLIB PDFs used as report evidence
-
-These folders must remain in place for the application to retrieve knowledge and show evidence.
-
-## Rebuild the vector database
-
-Only run this when the transformed source records have changed:
-
-```powershell
-.\.venv\Scripts\python.exe scripts\index_current_records.py
-```
-
-This rebuilds `data/knowledge_records.json` and `chroma_db/` from the transformed Chen and HLIB records.
-
-## Offline ETL scripts
-
-The scripts below construct the knowledge base. They are not required to run the already-indexed application.
-
-| Script | Purpose |
+| Item | Purpose |
 |---|---|
-| `scripts/collect_chen_captions.py` | Collects Alfred Chen video metadata, captions, and timestamps. |
-| `scripts/extract_hlib_pdfs.py` | Extracts HLIB report metadata, text, and page references. |
-| `scripts/transform_chen_transcripts.py` | Uses Gemini to turn Chen transcripts into structured financial knowledge records. |
-| `scripts/transform_hlib_reports.py` | Uses Gemini to turn HLIB reports into structured financial knowledge records. |
-| `scripts/index_current_records.py` | Loads transformed records and rebuilds the ChromaDB index. |
+| `data/knowledge_records.json` | Loads the complete evidence records. |
+| `chroma_db/` | Performs semantic vector retrieval. |
+| `data/chen_extracted/` | Loads complete transcripts for Direct Chen evidence. |
+| `data/hlib_source/` | Enables original HLIB PDF downloads in the interface. |
+| `.env` with `GEMINI_API_KEY2` | Enables Gemini query interpretation, relevance assessment, and analysis. |
+| MiniLM model cache | Creates query embeddings. It downloads automatically on first use. |
 
-## Project structure
+If the runtime ZIP has not been extracted, the application displays a clear missing-data message and stops before analysis.
+
+## Main project files
 
 | File | Purpose |
 |---|---|
-| `app.py` | Streamlit user interface and six-stage workflow controller. |
+| `app.py` | Streamlit interface and six-stage workflow controller. |
 | `event_input.py` | Handles typed events, article URLs, and PDF uploads. |
-| `event_analysis.py` | Creates factual event summaries and retrieval queries. |
-| `vector_store.py` | Embedding model and ChromaDB search functions. |
-| `relevance_filter.py` | Relevance classification of retrieved records. |
-| `source_context.py` | Direct Chen transcript-context retrieval. |
-| `impact_synthesis.py` | Independent Chen and HLIB impact analyses. |
-| `comparison_analysis.py` | Source comparison and causal-graph data. |
-| `interactive_graph.py` | Interactive causal-graph rendering. |
-| `models.py` | Pydantic data models for structured knowledge records. |
+| `event_analysis.py` | Creates a factual event summary and retrieval queries. |
+| `knowledge_store.py` | Loads full records and coordinates candidate retrieval. |
+| `vector_store.py` | Loads the embedding model and searches ChromaDB. |
+| `relevance_filter.py` | Classifies retrieved records by relevance. |
+| `source_context.py` | Retrieves full Chen transcript context. |
+| `impact_synthesis.py` | Generates and validates separate Chen and HLIB analyses. |
+| `comparison_analysis.py` | Compares source results and constructs graph data. |
+| `interactive_graph.py` | Renders the interactive causal graph. |
+| `models.py` | Defines the structured knowledge-record schema. |
 
-## Notes
+## Offline ETL scripts
 
-- The system keeps Alfred Chen and HLIB Research evidence separate until the comparison stage.
-- Semantic similarity finds candidates; it does not prove that evidence applies to the event.
-- The system may return **No Supported Conclusion** when it does not find suitable evidence.
+The application does not run these scripts during normal use. They document and reproduce the offline knowledge-construction process when the full source and transformed datasets are available.
+
+| Script | Purpose |
+|---|---|
+| `scripts/collect_chen_captions.py` | Collects Chen video metadata, captions, and timestamps. |
+| `scripts/extract_hlib_pdfs.py` | Extracts HLIB report metadata, text, and page references. |
+| `scripts/transform_chen_transcripts.py` | Transforms Chen transcripts into structured knowledge. |
+| `scripts/transform_hlib_reports.py` | Transforms HLIB reports into structured knowledge. |
+| `scripts/index_current_records.py` | Rebuilds `knowledge_records.json` and ChromaDB from transformed records. |
+
+The minimal runtime ZIP does not contain every intermediate ETL folder. Rebuilding the complete database requires the full transformed datasets retained by the project author.
+
+## Important behaviour
+
+- Chen and HLIB evidence remain separate until the comparison stage.
+- Semantic similarity identifies candidates but does not prove relevance.
+- General Background can provide context but cannot independently justify a directional impact.
+- The system returns **No Supported Conclusion** when it lacks Direct or Applicable Rule evidence.
