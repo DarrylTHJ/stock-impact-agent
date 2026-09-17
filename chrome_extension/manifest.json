@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Bursa Impact Explorer",
+  "version": "1.0.0",
+  "description": "Send the current news article to the local Bursa Impact Explorer.",
+  "permissions": ["activeTab", "contextMenus"],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "action": {
+    "default_title": "Analyse with Bursa Impact Explorer"
+  }
+}

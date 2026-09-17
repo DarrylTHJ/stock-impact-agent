@@ -1,113 +1,103 @@
-# Stock Impact Agent
+# Bursa Malaysia Event-Impact Explorer
 
-An evidence-grounded FYP prototype for comparing how Chen's market commentary and HLIB research interpret an event's potential impact on Bursa Malaysia sectors and companies.
+An LLM-based dual-source system for analysing how a news event may affect Bursa Malaysia sectors and listed companies. It retrieves and compares evidence from two separate knowledge bases:
 
-## First build target
+- Alfred Chen's market commentary
+- HLIB Research reports
 
-- Typed English event input
-- Article URL and PDF event input
-- LLM-assisted event analysis/query normalisation
-- ChromaDB semantic retrieval using a local multilingual embedding model
-- Separate Chen and HLIB analysis panels
-- Evidence-linked sector results
-- Sample knowledge records, before real ingestion is added
+The system is a research prototype. Its output is not investment advice.
 
-## Run later
+## What the system does
+
+1. Accepts a typed event, article URL, or PDF upload.
+2. Uses Gemini to create a factual summary and up to five neutral retrieval queries.
+3. Searches a local ChromaDB vector database for similar Chen and HLIB knowledge records.
+4. Classifies each candidate as Direct, Applicable Rule, General Background, or Irrelevant.
+5. Retrieves surrounding transcript context for Direct Alfred Chen records.
+6. Produces separate source analyses, then compares them and displays a causal graph.
+
+## Requirements
+
+- Python 3.10 or newer
+- A Gemini API key
+- Internet access for Gemini calls and article-URL extraction
+
+## Setup
+
+Open PowerShell in the project folder and create a virtual environment:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+```
+
+Create a `.env` file in the project root and add your Gemini API key:
+
+```env
+GEMINI_API_KEY2=your_gemini_api_key_here
+```
+
+Do not commit or submit the `.env` file.
+
+## Start the application
+
+```powershell
 streamlit run app.py
 ```
 
-Data in `data/` is local-only and must not be committed. `sample_data/` contains fictional records solely to exercise the application structure. URL extraction works only for publicly readable, static article pages; uploaded scanned PDFs require OCR, which is not included yet.
+Streamlit will display a local URL, normally `http://localhost:8501`. Open it in a browser.
 
-## Collect Chen transcripts
+## Included knowledge base
 
-The collector saves one local JSON file per video with metadata and timestamped
-caption segments. It does not call an LLM or create knowledge records.
+The submitted project includes:
 
-First, run a one-video test:
+- `data/knowledge_records.json` - complete structured knowledge records
+- `chroma_db/` - the corresponding semantic-search index
+- `data/chen_extracted/` - timestamped Chen transcripts used for Direct-record context
+- `data/hlib_source/` - original HLIB PDFs used as report evidence
 
-```powershell
-.\.venv\Scripts\python.exe scripts\collect_chen_captions.py --limit 1
-```
+These folders must remain in place for the application to retrieve knowledge and show evidence.
 
-Then collect the available caption tracks for the full channel:
+## Rebuild the vector database
 
-```powershell
-.\.venv\Scripts\python.exe scripts\collect_chen_captions.py
-```
-
-Files are written to `data/chen_extracted/`. The accompanying
-`collection_log.jsonl` identifies videos without suitable captions or videos
-that need another attempt. Automatic captions are included only when a manual
-Chinese/English track is unavailable; use `--manual-only` to exclude them.
-
-## Transform Chen transcripts into review drafts
-
-This step sends a **complete timestamped transcript** to Gemini and creates
-draft knowledge records. It does not add anything to the application database
-until the drafts have been reviewed. The default model is the lightweight
-`gemini-3.1-flash-lite`, with one request every 45 seconds. The run stops on a
-quota/rate-limit response and safely resumes later without repeating completed
-videos.
-
-Start with two videos:
+Only run this when the transformed source records have changed:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\transform_chen_transcripts.py --limit 2
+.\.venv\Scripts\python.exe scripts\index_current_records.py
 ```
 
-Initial transformed knowledge records and their log are stored in `data/chen_transformed_initial/`.
+This rebuilds `data/knowledge_records.json` and `chroma_db/` from the transformed Chen and HLIB records.
 
-### HLIB reports
+## Offline ETL scripts
 
-Place original HLIB PDFs in `data/hlib_source/`. Extract all reports locally,
-preserving page numbers, with:
+The scripts below construct the knowledge base. They are not required to run the already-indexed application.
 
-```powershell
-.\.venv\Scripts\python.exe scripts\extract_hlib_pdfs.py
-```
+| Script | Purpose |
+|---|---|
+| `scripts/collect_chen_captions.py` | Collects Alfred Chen video metadata, captions, and timestamps. |
+| `scripts/extract_hlib_pdfs.py` | Extracts HLIB report metadata, text, and page references. |
+| `scripts/transform_chen_transcripts.py` | Uses Gemini to turn Chen transcripts into structured financial knowledge records. |
+| `scripts/transform_hlib_reports.py` | Uses Gemini to turn HLIB reports into structured financial knowledge records. |
+| `scripts/index_current_records.py` | Loads transformed records and rebuilds the ChromaDB index. |
 
-The extracted page text is stored in `data/hlib_extracted/`. Initial Gemini
-transformation is resumable and writes to `data/hlib_transformed_initial/`:
+## Project structure
 
-```powershell
-.\.venv\Scripts\python.exe scripts\transform_hlib_reports.py
-```
-The extractor distinguishes `sector_impact` (a source-supported effect on an
-entire Bursa sector), `company_impact` (an effect only on an explicitly named
-company), and `market_context` (useful narrative that does not create a graph
-impact edge).
+| File | Purpose |
+|---|---|
+| `app.py` | Streamlit user interface and six-stage workflow controller. |
+| `event_input.py` | Handles typed events, article URLs, and PDF uploads. |
+| `event_analysis.py` | Creates factual event summaries and retrieval queries. |
+| `vector_store.py` | Embedding model and ChromaDB search functions. |
+| `relevance_filter.py` | Relevance classification of retrieved records. |
+| `source_context.py` | Direct Chen transcript-context retrieval. |
+| `impact_synthesis.py` | Independent Chen and HLIB impact analyses. |
+| `comparison_analysis.py` | Source comparison and causal-graph data. |
+| `interactive_graph.py` | Interactive causal-graph rendering. |
+| `models.py` | Pydantic data models for structured knowledge records. |
 
-## Verify drafts before promotion
+## Notes
 
-Verification is a separate gate: it checks whether each candidate's fixed
-source quote supports the claimed target, direction, and reason. Unsupported
-sector/company candidates are demoted to grounded `market_context` only when
-the evidence supports that context; otherwise they are rejected. It can verify
-up to 12 candidate records in one Gemini request.
-
-```powershell
-.\.venv\Scripts\python.exe scripts\verify_chen_drafts.py --video-id 5mxB_Pzjlng
-```
-
-Initial support-check outputs are written to `data/chen_transformed_validated/`.
-After full-transcript recovery and final verification, only files in
-`data/chen_transformed_final/` can be promoted into the local knowledge
-store and ChromaDB.
-
-## Run the complete Chen pipeline
-
-To proceed from source captions all the way to final verification without
-overlapping Gemini requests, run the coordinator. It resumes from completed
-stages, pauses 45 seconds between model calls, and stops safely on quota or
-network errors.
-
-```powershell
-.\.venv\Scripts\python.exe scripts\run_chen_pipeline.py
-```
-
-Its progress log is `data/chen_pipeline_logs/coordinator_log.jsonl`.
+- The system keeps Alfred Chen and HLIB Research evidence separate until the comparison stage.
+- Semantic similarity finds candidates; it does not prove that evidence applies to the event.
+- The system may return **No Supported Conclusion** when it does not find suitable evidence.

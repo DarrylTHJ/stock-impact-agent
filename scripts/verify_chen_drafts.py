@@ -38,11 +38,14 @@ DEFAULT_DELAY_SECONDS = 45
 
 class VerificationFinding(BaseModel):
     candidate_id: str
+    trigger_supported: bool
+    causal_link_supported: bool
     target_supported: bool
     direction_supported: bool
     reason_supported: bool
     market_context_supported: bool
     supported_company_names: list[str] = Field(default_factory=list)
+    evidence_translations: list[str] = Field(default_factory=list)
     reviewer_note: str = ""
 
 
@@ -61,7 +64,10 @@ def candidate_payload(candidate_id: str, record: dict) -> dict:
         "reason": record["reason"],
         "impacted_companies": [company["company_name"] for company in record.get("impacted_companies", [])],
         "evidence": [
-            {"location": item["location"], "quote": item["quote"]}
+            {
+                "location": item["location"],
+                "quote": item["quote"],
+            }
             for item in record["evidence"]
         ],
     }
@@ -73,7 +79,13 @@ You are a strict evidence verifier for an academic Bursa Malaysia event-impact
 system. Use only the provided original-language evidence quotes. Do not use
 outside financial knowledge and do not make plausible inference.
 
-For every candidate, decide four booleans:
+For every candidate, decide six booleans:
+- trigger_supported: the quote explicitly supports the stated trigger event.
+  A related topic or event mentioned elsewhere is insufficient.
+- causal_link_supported: the quote explicitly connects the trigger to the
+  claimed impact. Merely mentioning a trigger in one excerpt and an outcome in
+  another is false. Do not infer demand growth just because a device gains a
+  feature, or a positive event impact from dividends paid years later.
 - target_supported: the quote explicitly supports the named company, named
   industry, or official Bursa sector as the impact target. Broad investor or
   global-market commentary does NOT support a sector target.
@@ -87,6 +99,9 @@ For every candidate, decide four booleans:
 - supported_company_names: include only company names from the candidate list
   that are explicitly named and connected to the claim in the evidence. Return
   an empty list when none are supported.
+- evidence_translations: return one faithful, literal English translation for
+  each Chinese evidence quote, in the same order. Translate only the supplied
+  words; never add context or conclusions from elsewhere in the video.
 
 A named industry such as Automotive may support that industry, but must not be
 treated as proof that every company in its official Bursa main sector is
@@ -95,8 +110,14 @@ For a candidate whose knowledge_type is market_context, do not demand a sector
 or company target. Set market_context_supported and reason_supported based on
 the quote; its target/direction booleans are not used by the local policy.
 
-Return JSON only with `findings`. Include exactly one finding for every
-candidate_id. reviewer_note must be short and factual.
+Judge support directly from the original Chinese quotations; no existing
+translation is provided. Return JSON only with `findings`. Include exactly one
+finding for every candidate_id. Every finding must contain candidate_id,
+trigger_supported, causal_link_supported, target_supported,
+direction_supported, reason_supported,
+market_context_supported, supported_company_names, evidence_translations, and
+reviewer_note. All `*_supported` fields must be true or false, never null or
+omitted. reviewer_note must be short and factual.
 
 CANDIDATES:
 {json.dumps(candidates, ensure_ascii=False)}
@@ -112,6 +133,17 @@ def verify_batch(client: genai.Client, model: str, candidates: list[dict]) -> Ve
     payload = json.loads(response.text)
     if isinstance(payload, list):
         payload = {"findings": payload}
+    candidate_types = {
+        candidate["candidate_id"]: candidate["knowledge_type"]
+        for candidate in candidates
+    }
+    for finding in payload.get("findings", []):
+        knowledge_type = candidate_types.get(finding.get("candidate_id"))
+        if knowledge_type == "market_context":
+            finding.setdefault("target_supported", False)
+            finding.setdefault("direction_supported", False)
+        elif knowledge_type is not None:
+            finding.setdefault("market_context_supported", False)
     batch = VerificationBatch.model_validate(payload)
     expected_ids = {candidate["candidate_id"] for candidate in candidates}
     actual_ids = {finding.candidate_id for finding in batch.findings}
@@ -124,6 +156,13 @@ def apply_finding(record: dict, finding: VerificationFinding, final: bool) -> tu
     """Apply the conservative local approval policy to a verifier finding."""
     supported_names = set(finding.supported_company_names)
     sanitised = dict(record)
+    if len(finding.evidence_translations) != len(record["evidence"]):
+        return None, "needs_more_evidence"
+    sanitised["evidence"] = [dict(item) for item in record["evidence"]]
+    for evidence, translation in zip(
+        sanitised["evidence"], finding.evidence_translations, strict=True
+    ):
+        evidence["translation"] = translation
     sanitised["impacted_companies"] = [
         company
         for company in record.get("impacted_companies", [])
@@ -133,19 +172,35 @@ def apply_finding(record: dict, finding: VerificationFinding, final: bool) -> tu
     # It is evaluated only on whether its broad context and explanation are
     # supported; evidence recovery is reserved for missed sector/company links.
     if sanitised["knowledge_type"] == "market_context":
-        if finding.market_context_supported and finding.reason_supported:
+        if (
+            finding.trigger_supported
+            and finding.causal_link_supported
+            and finding.market_context_supported
+            and finding.reason_supported
+        ):
             sanitised["impacted_companies"] = []
             KnowledgeRecord.model_validate(sanitised)
             return sanitised, "approved_market_context"
         return None, "rejected_market_context"
-    if finding.target_supported and finding.direction_supported and finding.reason_supported:
+    if (
+        finding.trigger_supported
+        and finding.causal_link_supported
+        and finding.target_supported
+        and finding.direction_supported
+        and finding.reason_supported
+    ):
         if sanitised["knowledge_type"] == "company_impact" and not sanitised["impacted_companies"]:
             return None, "rejected"
         KnowledgeRecord.model_validate(sanitised)
         return sanitised, "approved"
     if not final:
         return None, "needs_more_evidence"
-    if finding.market_context_supported and finding.reason_supported:
+    if (
+        finding.trigger_supported
+        and finding.causal_link_supported
+        and finding.market_context_supported
+        and finding.reason_supported
+    ):
         demoted = dict(sanitised)
         demoted.update(
             {

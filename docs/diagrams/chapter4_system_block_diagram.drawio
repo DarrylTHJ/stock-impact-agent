@@ -1,0 +1,64 @@
+<mxfile host="app.diagrams.net" modified="2026-09-11T01:30:00.000Z" agent="Codex" version="24.7.17" type="device">
+  <diagram id="chapter4-blocks" name="4.1 System Block Diagram">
+    <mxGraphModel dx="1500" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="System Block Diagram" style="text;html=1;align=center;verticalAlign=middle;fontSize=24;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="55" width="800" height="45" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="offline" value="OFFLINE KNOWLEDGE PREPARATION" style="swimlane;html=1;rounded=1;startSize=38;fontStyle=1;fontSize=15;horizontal=1;fillColor=#eaf2f8;strokeColor=#5b8db8;" vertex="1" parent="1">
+          <mxGeometry x="55" y="145" width="920" height="430" as="geometry"/>
+        </mxCell>
+        <mxCell id="online" value="ONLINE EVENT ANALYSIS" style="swimlane;html=1;rounded=1;startSize=38;fontStyle=1;fontSize=15;horizontal=1;fillColor=#f4ecf7;strokeColor=#8e6ab3;" vertex="1" parent="1">
+          <mxGeometry x="1015" y="145" width="570" height="430" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="sources" value="&lt;b&gt;1. Data Sources&lt;/b&gt;&lt;br&gt;&lt;br&gt;Alfred Chen YouTube videos&lt;br&gt;HLIB Research PDF reports" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="265" width="235" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="preparation" value="&lt;b&gt;2. Knowledge Preparation&lt;/b&gt;&lt;br&gt;&lt;br&gt;Text extraction&lt;br&gt;LLM transformation&lt;br&gt;Validation and normalisation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="395" y="265" width="235" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="storage" value="&lt;b&gt;3. Knowledge Storage&lt;/b&gt;&lt;br&gt;&lt;br&gt;Structured JSON records&lt;br&gt;ChromaDB vector index&lt;br&gt;Original source files" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="690" y="265" width="235" height="155" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="analysis" value="&lt;b&gt;4. Event Analysis&lt;/b&gt;&lt;br&gt;&lt;br&gt;Input preparation&lt;br&gt;Semantic retrieval&lt;br&gt;Relevance classification&lt;br&gt;Separate source assessments" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="255" width="220" height="175" as="geometry"/>
+        </mxCell>
+        <mxCell id="interface" value="&lt;b&gt;5. Explainable Interface&lt;/b&gt;&lt;br&gt;&lt;br&gt;Chen and HLIB comparison&lt;br&gt;Evidence and sources&lt;br&gt;Causal event-impact graph" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1325" y="265" width="220" height="155" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="user" value="User event&lt;br&gt;text, URL or PDF" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1075" y="650" width="190" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="result" value="User examines&lt;br&gt;the result" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1340" y="650" width="190" height="85" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="sources" target="preparation">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="preparation" target="storage">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" value="retrieve records" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="storage" target="analysis">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" value="supported conclusions" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="analysis" target="interface">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="user" target="analysis">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="interface" target="result">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

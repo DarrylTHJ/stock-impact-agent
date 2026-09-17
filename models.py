@@ -42,6 +42,10 @@ class KnowledgeRecord(BaseModel):
     source_title: str
     source_date: str
     source_link: str | None = None
+    source_video_id: str | None = None
+    source_file: str | None = None
+    source_category: str | None = None
+    source_report_type: str | None = None
     extraction_model: str | None = None
 
     @model_validator(mode="after")

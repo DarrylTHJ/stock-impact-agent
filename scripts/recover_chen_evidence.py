@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from datetime import UTC, datetime
@@ -42,6 +43,15 @@ class RecoveryBatch(BaseModel):
     findings: list[RecoveryFinding]
 
 
+def normalise_timestamp_range(value: str) -> str:
+    """Canonicalise common model-rendered timestamp separators."""
+    match = re.fullmatch(
+        r"\s*(\d{2}:\d{2}:\d{2})\s*[\-\u2013\u2014\u2212\ufffd]\s*(\d{2}:\d{2}:\d{2})\s*",
+        value,
+    )
+    return f"{match.group(1)}\u2013{match.group(2)}" if match else value.strip()
+
+
 def build_prompt(candidates: list[dict], transcript: str) -> str:
     return f"""
 You are locating additional evidence in a complete timestamped Chen transcript.
@@ -73,18 +83,24 @@ def normalise_recovery_payload(payload: dict | list) -> dict:
         payload = {"findings": payload}
     for finding in payload.get("findings", []):
         locations: list[str] = []
-        translations = finding.setdefault("translations", {})
+        raw_translations = finding.setdefault("translations", {})
+        translations = {
+            normalise_timestamp_range(key): value
+            for key, value in raw_translations.items()
+        }
         for item in finding.get("evidence_locations") or []:
             if isinstance(item, str):
-                locations.append(item)
+                locations.append(normalise_timestamp_range(item))
             elif isinstance(item, dict):
                 location = item.get("timestamp_range") or item.get("location")
                 if isinstance(location, str):
+                    location = normalise_timestamp_range(location)
                     locations.append(location)
                     translation = item.get("translation")
                     if isinstance(translation, str) and translation.strip():
                         translations.setdefault(location, translation)
         finding["evidence_locations"] = locations
+        finding["translations"] = translations
     return payload
 
 
@@ -176,6 +192,7 @@ def main() -> None:
                     }
                     for location in finding.evidence_locations
                     if TIMESTAMP_RANGE_PATTERN.fullmatch(location)
+                    and finding.translations.get(location)
                     and location not in {item["location"] for item in recovered["evidence"]}
                 ]
                 recovered["evidence"] = [*recovered["evidence"], *extra_evidence]

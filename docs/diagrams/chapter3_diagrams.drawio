@@ -1,0 +1,502 @@
+<mxfile host="app.diagrams.net" agent="Codex" pages="3">
+  <diagram id="architecture" name="3.1.1 System Architecture">
+    <mxGraphModel dx="1212" dy="661" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="a-title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;" value="System Architecture of the Stock Investment Event-Impact Agent" vertex="1">
+          <mxGeometry height="40" width="1000" x="320" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="a-offline" parent="1" style="swimlane;html=1;rounded=1;startSize=34;fontStyle=1;fontSize=15;horizontal=1;fillColor=#eaf2f8;strokeColor=#5b8db8;" value="OFFLINE KNOWLEDGE INGESTION (ETL)" vertex="1">
+          <mxGeometry height="950" width="720" x="40" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a-online" parent="1" style="swimlane;html=1;rounded=1;startSize=34;fontStyle=1;fontSize=15;horizontal=1;fillColor=#f4ecf7;strokeColor=#8e6ab3;" value="ONLINE QUERY INGESTION (RAG)" vertex="1">
+          <mxGeometry height="950" width="800" x="800" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a-chen" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="Alfred Chen&lt;br&gt;YouTube Videos" vertex="1">
+          <mxGeometry height="70" width="230" x="90" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="a-hlib" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="HLIB Research&lt;br&gt;PDF Reports" vertex="1">
+          <mxGeometry height="70" width="230" x="480" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="a-chen-extract" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;Transcript Extraction&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;captions and timestamps&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="70" width="230" x="90" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="a-hlib-extract" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;PDF Text Extraction&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;text and page references&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="70" width="230" x="480" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="a-chen-transform" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Chen Transformation&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;LLM structures financial knowledge&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="80" width="230" x="90" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="a-hlib-transform" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;HLIB Transformation&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;LLM structures report knowledge&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="80" width="230" x="480" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="a-chen-validate" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="&lt;b&gt;Validation and Normalisation&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;schema, sectors, companies and evidence&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="80" width="230" x="90" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="a-hlib-validate" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="&lt;b&gt;Validation and Normalisation&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;schema, sectors, companies and pages&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="80" width="230" x="480" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="a-chen-records" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="Structured Chen&lt;br&gt;Knowledge Records" vertex="1">
+          <mxGeometry height="70" width="230" x="90" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="a-hlib-records" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="Structured HLIB&lt;br&gt;Knowledge Records" vertex="1">
+          <mxGeometry height="70" width="230" x="480" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="Pb8CtlPyK_-t8CfNGv5e-1" edge="1" parent="1" source="a-chroma" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="a-archive" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a-chroma" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="ChromaDB Vector Database&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;separate Chen and HLIB collections&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="300" x="250" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="a-archive" parent="1" style="shape=folder;tabWidth=60;tabHeight=20;tabPosition=left;html=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;Original Source Storage&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;transcripts and PDF reports&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="70" width="300" x="250" y="930" as="geometry" />
+        </mxCell>
+        <mxCell id="a-user" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontStyle=1;" value="User" vertex="1">
+          <mxGeometry height="100" width="70" x="830" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="a-input" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="Event Input&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;text, article URL or PDF&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="240" x="950" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="a-event-analysis" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Event Analysis&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;understand event and prepare search themes&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="70" width="270" x="1280" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="a-retrieve-chen" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="Retrieve Chen Records" vertex="1">
+          <mxGeometry height="65" width="260" x="870" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="a-retrieve-hlib" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="Retrieve HLIB Records" vertex="1">
+          <mxGeometry height="65" width="260" x="1270" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="a-filter" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="LLM Relevance Classification&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;direct support, general context or irrelevant&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="360" x="1020" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="a-context" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;Additional Source Context&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;load highly relevant transcripts or report content (for direct)&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="80" width="360" x="1020" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="a-chen-verdict" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="Chen Event-Impact&lt;br&gt;Assessment" vertex="1">
+          <mxGeometry height="70" width="260" x="870" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="a-hlib-verdict" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="HLIB Event-Impact&lt;br&gt;Assessment" vertex="1">
+          <mxGeometry height="70" width="260" x="1270" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="a-compare" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Source Comparison and Causal Graph" vertex="1">
+          <mxGeometry height="70" width="360" x="1020" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="a-ui" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;" value="Explainable Web Interface&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;stages, conclusions, evidence, sources and graph&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="360" x="1020" y="960" as="geometry" />
+        </mxCell>
+        <mxCell id="ae1" edge="1" parent="1" source="a-chen" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" target="a-chen-extract">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae2" edge="1" parent="1" source="a-hlib" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" target="a-hlib-extract">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae3" edge="1" parent="1" source="a-chen-extract" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-chen-transform">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae4" edge="1" parent="1" source="a-hlib-extract" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-hlib-transform">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae5" edge="1" parent="1" source="a-chen-transform" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-chen-validate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae6" edge="1" parent="1" source="a-hlib-transform" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-hlib-validate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae7" edge="1" parent="1" source="a-chen-validate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-chen-records">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae8" edge="1" parent="1" source="a-hlib-validate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-hlib-records">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae9" edge="1" parent="1" source="a-chen-records" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-chroma">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae10" edge="1" parent="1" source="a-hlib-records" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-chroma">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae13" edge="1" parent="1" source="a-user" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-input">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae14" edge="1" parent="1" source="a-input" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-event-analysis">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae16" edge="1" parent="1" source="a-event-analysis" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-retrieve-hlib" value="vector search">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae19" edge="1" parent="1" source="a-retrieve-chen" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-filter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae20" edge="1" parent="1" source="a-retrieve-hlib" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-filter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae21" edge="1" parent="1" source="a-filter" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-context">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae23" edge="1" parent="1" source="a-context" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-chen-verdict">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae24" edge="1" parent="1" source="a-context" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-hlib-verdict">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae25" edge="1" parent="1" source="a-chen-verdict" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-compare">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae26" edge="1" parent="1" source="a-hlib-verdict" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-compare">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae27" edge="1" parent="1" source="a-compare" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="a-ui">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae28" edge="1" parent="1" source="a-ui" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;dashed=1;" value="inspect results">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="860" y="280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ae15" edge="1" parent="1" source="a-event-analysis" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="a-retrieve-chen" value="vectory search">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1347.52" y="280" />
+              <mxPoint x="1000" y="280" />
+            </Array>
+            <mxPoint x="1315.6399999999999" y="267.99" as="sourcePoint" />
+            <mxPoint x="1000" y="362.01" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="use-case" name="3.1.2 Use Case Diagram">
+    <mxGraphModel dx="2060" dy="1124" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1654" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="u-title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;" value="Use Case Diagram" vertex="1">
+          <mxGeometry height="40" width="650" x="300" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="u-boundary" parent="1" style="swimlane;html=1;rounded=0;startSize=36;fontStyle=1;fontSize=15;horizontal=1;fillColor=none;strokeColor=#666666;" value="Stock Investment Event-Impact Agent" vertex="1">
+          <mxGeometry height="1070" width="750" x="310" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="u-provide" parent="u-boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="Provide Event" vertex="1">
+          <mxGeometry height="80" width="250" x="160" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="u-analyse" parent="u-boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Analyse Event" vertex="1">
+          <mxGeometry height="80" width="250" x="160" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="u-user" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontStyle=1;" value="User" vertex="1">
+          <mxGeometry height="130" width="90" x="100" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="u-text" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Submit Text" vertex="1">
+          <mxGeometry height="60" width="190" x="770" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="u-url" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Paste Article URL" vertex="1">
+          <mxGeometry height="60" width="190" x="770" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="u-pdf" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Upload PDF" vertex="1">
+          <mxGeometry height="60" width="190" x="770" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="u-understanding" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="View Event Understanding" vertex="1">
+          <mxGeometry height="75" width="250" x="470" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="u-records" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="View Retrieved and&lt;br&gt;Classified Records" vertex="1">
+          <mxGeometry height="80" width="250" x="470" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="u-evidence" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Inspect Evidence and&lt;br&gt;Original Sources" vertex="1">
+          <mxGeometry height="80" width="220" x="770" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="x2UeHV3p_WMz6s8b-fKO-1" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="u-assessments" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="440.03" y="770.03" />
+              <mxPoint x="595" y="770.03" />
+              <mxPoint x="595" y="790.03" />
+              <mxPoint x="490.03" y="790.03" />
+              <mxPoint x="490.03" y="780.03" />
+            </Array>
+            <mxPoint x="440" y="790" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="u-assessments" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="View Separate Chen and&lt;br&gt;HLIB Assessments" vertex="1">
+          <mxGeometry height="80" width="250" x="470" y="740" as="geometry" />
+        </mxCell>
+        <mxCell id="u-compare" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Compare Source Results" vertex="1">
+          <mxGeometry height="75" width="250" x="470" y="890" as="geometry" />
+        </mxCell>
+        <mxCell id="u-graph" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Explore Event-Impact Graph" vertex="1">
+          <mxGeometry height="75" width="250" x="470" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="ue1" edge="1" parent="1" source="u-user" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;" target="u-provide">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="440" y="575" />
+              <mxPoint x="440" y="230.06" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ue2" edge="1" parent="1" source="u-user" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="u-analyse">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="440" y="575" />
+              <mxPoint x="440" y="350.06" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ue3" edge="1" parent="1" source="u-user" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;" target="u-understanding">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="440" y="575" />
+              <mxPoint x="440" y="517.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ue4" edge="1" parent="1" source="u-user" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;" target="u-records">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="440" y="575" />
+              <mxPoint x="440" y="650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ue5" edge="1" parent="1" source="u-user" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="740" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ue6" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;" target="u-compare">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="440" y="575" />
+              <mxPoint x="440" y="927.5" />
+            </Array>
+            <mxPoint x="190" y="575" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ue7" edge="1" parent="1" source="u-user" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;" target="u-graph">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="440" y="575" />
+              <mxPoint x="440" y="1057.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ue8" edge="1" parent="1" source="u-text" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=open;endFill=0;" target="u-provide" value="&lt;&lt;extend&gt;&gt;">
+          <mxGeometry relative="1" x="0.0036" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="750" y="160" />
+              <mxPoint x="750" y="220" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ue9" edge="1" parent="1" source="u-url" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=open;endFill=0;" target="u-provide" value="&lt;&lt;extend&gt;&gt;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="750" y="240" />
+              <mxPoint x="750" y="220" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ue10" edge="1" parent="1" source="u-pdf" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=open;endFill=0;" target="u-provide" value="&lt;&lt;extend&gt;&gt;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="750" y="320" />
+              <mxPoint x="750" y="220" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ue11" edge="1" parent="1" source="u-evidence" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=open;endFill=0;" target="u-records" value="&lt;&lt;extend&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="activity" name="3.1.3 Activity Diagram">
+    <mxGraphModel dx="1212" dy="661" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1654" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="v-title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;" value="Activity Diagram for Event Analysis" vertex="1">
+          <mxGeometry height="40" width="650" x="270" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="v-user-lane" parent="1" style="swimlane;html=1;horizontal=0;startSize=34;fontStyle=1;fillColor=#f5f5f5;strokeColor=#666666;" value="USER" vertex="1">
+          <mxGeometry height="1480" width="300" x="80" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="v-system-lane" parent="1" style="swimlane;html=1;horizontal=0;startSize=34;fontStyle=1;fillColor=#f4ecf7;strokeColor=#8e6ab3;" value="SYSTEM" vertex="1">
+          <mxGeometry height="1480" width="700" x="380" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="v-url" parent="v-system-lane" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Paste article URL" vertex="1">
+          <mxGeometry height="55" width="170" x="50" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="v-pdf" parent="v-system-lane" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Upload event PDF" vertex="1">
+          <mxGeometry height="55" width="170" x="50" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="v-text" parent="v-system-lane" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Enter event text" vertex="1">
+          <mxGeometry height="55" width="170" x="50" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="v-insufficient" parent="v-system-lane" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Display insufficient knowledge message" vertex="1">
+          <mxGeometry height="60" width="210" x="50" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="v-start" parent="1" style="ellipse;html=1;aspect=fixed;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="30" width="30" x="210" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="v-select" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Select input method" vertex="1">
+          <mxGeometry height="60" width="180" x="135" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="v-input-decision" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Input type?" vertex="1">
+          <mxGeometry height="80" width="90" x="180" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="v-extract-url" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Extract readable article text" vertex="1">
+          <mxGeometry height="55" width="210" x="650" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="v-extract-pdf" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Extract text from PDF" vertex="1">
+          <mxGeometry height="55" width="210" x="650" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="v-normalize" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Validate and normalise event content" vertex="1">
+          <mxGeometry height="60" width="280" x="610" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="v-valid" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Valid input?" vertex="1">
+          <mxGeometry height="80" width="90" x="705" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="v-error" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Display input error" vertex="1">
+          <mxGeometry height="55" width="160" x="420" y="630" as="geometry" />
+        </mxCell>
+        <mxCell id="v-analyse" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Analyse event and prepare search themes" vertex="1">
+          <mxGeometry height="65" width="280" x="610" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="v-retrieve-chen" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Retrieve Chen knowledge records" vertex="1">
+          <mxGeometry height="60" width="250" x="440" y="870" as="geometry" />
+        </mxCell>
+        <mxCell id="v-retrieve-hlib" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Retrieve HLIB knowledge records" vertex="1">
+          <mxGeometry height="60" width="250" x="770" y="870" as="geometry" />
+        </mxCell>
+        <mxCell id="v-classify" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Classify retrieved records by relevance" vertex="1">
+          <mxGeometry height="65" width="280" x="610" y="980" as="geometry" />
+        </mxCell>
+        <mxCell id="v-relevant" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Relevant records found?" vertex="1">
+          <mxGeometry height="90" width="120" x="690" y="1085" as="geometry" />
+        </mxCell>
+        <mxCell id="v-context" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Load additional context from highly relevant sources" vertex="1">
+          <mxGeometry height="65" width="280" x="610" y="1210" as="geometry" />
+        </mxCell>
+        <mxCell id="v-generate" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Generate separate Chen and HLIB assessments" vertex="1">
+          <mxGeometry height="65" width="280" x="610" y="1310" as="geometry" />
+        </mxCell>
+        <mxCell id="v-display" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Compare results and display evidence, explanations and graph" vertex="1">
+          <mxGeometry height="70" width="280" x="610" y="1410" as="geometry" />
+        </mxCell>
+        <mxCell id="v-inspect" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Inspect results and sources" vertex="1">
+          <mxGeometry height="60" width="200" x="125" y="1415" as="geometry" />
+        </mxCell>
+        <mxCell id="v-end" parent="1" style="ellipse;html=1;aspect=fixed;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="30" width="30" x="210" y="1510" as="geometry" />
+        </mxCell>
+        <mxCell id="ve1" edge="1" parent="1" source="v-start" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-select">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve2" edge="1" parent="1" source="v-select" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-input-decision">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve3" edge="1" parent="1" source="v-input-decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-text" value="Text">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve4" edge="1" parent="1" source="v-input-decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-url" value="URL">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="330.06" />
+              <mxPoint x="350" y="197.47" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ve5" edge="1" parent="1" source="v-input-decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-pdf" value="PDF">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve6" edge="1" parent="1" source="v-url" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-extract-url">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve8" edge="1" parent="1" source="v-text" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-normalize">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="520" y="550.06" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ve10" edge="1" parent="1" source="v-extract-pdf" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="v-normalize">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="755" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ve11" edge="1" parent="1" source="v-normalize" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-valid">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve12" edge="1" parent="1" source="v-valid" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-error" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve13" edge="1" parent="1" source="v-valid" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-analyse" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve14" edge="1" parent="1" source="v-analyse" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-retrieve-chen">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve15" edge="1" parent="1" source="v-analyse" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-retrieve-hlib">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve16" edge="1" parent="1" source="v-retrieve-chen" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-classify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve17" edge="1" parent="1" source="v-retrieve-hlib" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-classify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve18" edge="1" parent="1" source="v-classify" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-relevant">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve19" edge="1" parent="1" source="v-relevant" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-insufficient" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve20" edge="1" parent="1" source="v-relevant" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-context" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve21" edge="1" parent="1" source="v-context" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-generate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve22" edge="1" parent="1" source="v-generate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-display">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve23" edge="1" parent="1" source="v-display" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-inspect">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve24" edge="1" parent="1" source="v-inspect" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;" target="v-end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ve25" edge="1" parent="1" source="v-error" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;dashed=1;" target="v-select" value="revise input">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="160" y="657.47" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lEvO1LCViYid8_NvwF0u-3" edge="1" parent="1" source="v-extract-url" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="v-extract-pdf">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="755" y="400" />
+              <mxPoint x="755" y="400" />
+            </Array>
+            <mxPoint x="765" y="490" as="sourcePoint" />
+            <mxPoint x="760" y="545" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ve26" edge="1" parent="1" source="v-insufficient" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.125;entryY=0.997;entryDx=0;entryDy=0;entryPerimeter=0;" target="v-select" value="revise input">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="160" y="1130.06" />
+              <mxPoint x="160" y="249.82" />
+            </Array>
+            <mxPoint x="344.94" y="1110.058823529412" as="sourcePoint" />
+            <mxPoint x="160" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -37,8 +37,7 @@ def main() -> None:
     LOCAL_DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
     LOCAL_DATA_FILE.write_text(json.dumps(merged, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # The app also indexes on retrieval, but indexing here makes the promoted
-    # records available immediately for a direct local test.
+    # Indexing is an explicit offline operation; the app never writes during a query.
     index_records(load_records())
     print(f"Promoted and indexed {len(approved)} record(s) from {args.video_id}.")
 

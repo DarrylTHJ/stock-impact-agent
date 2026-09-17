@@ -66,9 +66,46 @@ def index_records(records: list[KnowledgeRecord]) -> None:
     )
 
 
+def rebuild_index(records: list[KnowledgeRecord]) -> None:
+    """Replace the complete collection so stale vectors cannot survive a rebuild."""
+    client = chromadb.PersistentClient(path=str(DB_PATH))
+    try:
+        client.delete_collection(COLLECTION_NAME)
+    except Exception:
+        # A first-time build has no collection to delete.
+        pass
+    collection = get_collection()
+    if records:
+        collection.upsert(
+            ids=[record.knowledge_id for record in records],
+            documents=[record.embedding_summary for record in records],
+            metadatas=[
+                {
+                    "knowledge_id": record.knowledge_id,
+                    "source_name": record.source_name,
+                    "knowledge_type": record.knowledge_type,
+                }
+                for record in records
+            ],
+        )
+
+
 def search_knowledge_ids(
     search_queries: list[str], source_name: str, limit: int = 5
 ) -> list[str]:
+    return [knowledge_id for knowledge_id, _ in search_knowledge_matches(
+        search_queries, source_name, limit, apply_distance_threshold=True
+    )]
+
+
+def search_knowledge_matches(
+    search_queries: list[str],
+    source_name: str,
+    limit: int = 10,
+    *,
+    apply_distance_threshold: bool = False,
+) -> list[tuple[str, float]]:
+    """Return unique nearest IDs and cosine distances across all query phrases."""
     collection = get_collection()
     results = collection.query(
         query_texts=search_queries,
@@ -80,12 +117,12 @@ def search_knowledge_ids(
     closest_distances: dict[str, float] = {}
     for id_group, distance_group in zip(results.get("ids", []), results.get("distances", [])):
         for knowledge_id, distance in zip(id_group or [], distance_group or []):
-            if distance <= MAX_COSINE_DISTANCE:
+            if not apply_distance_threshold or distance <= MAX_COSINE_DISTANCE:
                 closest_distances[knowledge_id] = min(
                     distance, closest_distances.get(knowledge_id, float("inf"))
                 )
 
     return [
-        knowledge_id
-        for knowledge_id, _ in sorted(closest_distances.items(), key=lambda item: item[1])[:limit]
+        (knowledge_id, distance)
+        for knowledge_id, distance in sorted(closest_distances.items(), key=lambda item: item[1])[:limit]
     ]

@@ -41,7 +41,10 @@ def analyse_event(event_text: str) -> EventAnalysis:
 You prepare retrieval queries for a Bursa Malaysia event-impact application.
 Analyse the event below. Restate only what the event says; do not predict which
 sector, company, or stock will benefit or suffer. Produce concise themes and
-search phrases that help retrieve source evidence.
+search phrases that help retrieve source evidence. Make the retrieval phrases
+meaningfully different: cover the exact actors/policy, the economic mechanism,
+the relevant Malaysian exposure, and any stated geopolitical or supply-chain
+risk. Do not produce several generic variations of the same phrase.
 
 Event: {event_text}
 """

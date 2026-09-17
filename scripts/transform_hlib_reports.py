@@ -133,11 +133,20 @@ For market_context:
 Evidence rules:
 - each evidence item must copy a concise verbatim English excerpt from the
   stated page and provide its integer page_number
+- each evidence item must be a JSON object whose verbatim-text field is named
+  exactly `quote`, not `excerpt`, `evidence_text`, or another synonym
 - use multiple evidence excerpts when the reasoning spans different pages
+- every quote must be one continuous passage that appears exactly in the
+  report; never use ellipses (`...`) to combine non-contiguous passages
+- if two separate passages are required, return them as two evidence items
 - ignore disclaimer pages and generic stock/sector rating definitions
 
-Return the report's actual title, its internal report type (for example
-Newsbreak, Sector View, or Data Pulse), and at most 15 knowledge records.
+Return JSON only, with exactly this top-level structure:
+{{"report_title": "actual report title", "report_type": "internal report type",
+"records": [...]}}
+
+The report_type is the label printed inside the report, for example Newsbreak,
+Sector View, or Data Pulse. Return at most 15 knowledge records.
 Each record requires: knowledge_type, trigger_event, impacted_sector,
 impacted_industry, impact_direction, reason, impacted_companies, evidence, and
 embedding_summary. Each company requires company_name, ticker, and zero-based
@@ -169,6 +178,70 @@ def evidence_matches_page(quote: str, page_text: str) -> bool:
     return comparable_text(quote) in comparable_text(page_text)
 
 
+def find_quote_page(quote: str, source: dict) -> int | None:
+    """Locate a quoted excerpt in the locally extracted page text."""
+    for page in source["pages"]:
+        if evidence_matches_page(quote, page["text"]):
+            return page["page_number"]
+    return None
+
+
+def normalise_response_payload(payload: object, source: dict) -> dict:
+    """Accept Gemini's common equivalent JSON shapes before validation."""
+    if isinstance(payload, list):
+        payload = {
+            "report_title": source["source_subject"],
+            "report_type": source["source_category"],
+            "records": payload,
+        }
+    if not isinstance(payload, dict):
+        raise ValueError("Gemini response must be a JSON object or records array")
+
+    for record in payload.get("records") or []:
+        record["impacted_companies"] = record.get("impacted_companies") or []
+
+        # Gemini sometimes selects the right record type but retains fields
+        # belonging to another type. Clear those incompatible fields before
+        # Pydantic performs the strict schema validation.
+        if record.get("knowledge_type") == "market_context":
+            record["impacted_sector"] = None
+            record["impacted_industry"] = None
+            record["impact_direction"] = None
+            record["impacted_companies"] = []
+        elif record.get("knowledge_type") == "company_impact":
+            record["impacted_sector"] = None
+
+        evidence_items = []
+        for item in record.get("evidence") or []:
+            if isinstance(item, str):
+                quote = item
+                page_number = find_quote_page(quote, source) or 1
+                evidence_items.append({"quote": quote, "page_number": page_number})
+            elif isinstance(item, dict):
+                normalised = dict(item)
+                if "quote" not in normalised:
+                    for alias in ("excerpt", "evidence_text", "verbatim_quote", "text"):
+                        if isinstance(normalised.get(alias), str):
+                            normalised["quote"] = normalised.pop(alias)
+                            break
+                page_value = normalised.get("page_number")
+                if isinstance(page_value, str):
+                    match = re.search(r"\d+", page_value)
+                    normalised["page_number"] = int(match.group()) if match else 1
+                if normalised.get("quote"):
+                    # Trust the locally extracted PDF pages over Gemini's page
+                    # label. This both fills missing labels and corrects labels
+                    # when an exact quote is found on another page.
+                    located_page = find_quote_page(normalised["quote"], source)
+                    if located_page is not None:
+                        normalised["page_number"] = located_page
+                    elif not normalised.get("page_number"):
+                        normalised["page_number"] = 1
+                evidence_items.append(normalised)
+        record["evidence"] = evidence_items
+    return payload
+
+
 def is_quota_error(error: Exception) -> bool:
     text = str(error).lower()
     return any(token in text for token in ("429", "resource_exhausted", "quota", "rate limit"))
@@ -180,11 +253,11 @@ def transform_one(client: genai.Client, model: str, source: dict) -> tuple[HlibE
         contents=build_prompt(source, format_report(source)),
         config={
             "response_mime_type": "application/json",
-            "response_schema": HlibExtractionBatch,
             "temperature": 0,
         },
     )
-    batch = normalise_scope(HlibExtractionBatch.model_validate_json(response.text))
+    payload = normalise_response_payload(json.loads(response.text), source)
+    batch = normalise_scope(HlibExtractionBatch.model_validate(payload))
     pages = {page["page_number"]: page["text"] for page in source["pages"]}
     warnings = []
     for record_index, record in enumerate(batch.records):
@@ -248,6 +321,12 @@ def main() -> None:
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--limit", type=int)
     parser.add_argument("--file", action="append", help="Transform only this extracted JSON filename or stem.")
+    parser.add_argument(
+        "--exclude-category",
+        action="append",
+        default=["Economic Update"],
+        help="Skip an extracted website category; repeatable (Economic Update by default).",
+    )
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--delay-seconds", type=int, default=DEFAULT_DELAY_SECONDS)
     args = parser.parse_args()
@@ -259,6 +338,14 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     paths = sorted(args.input_dir.glob("*.json"))
+    excluded_categories = {value.casefold() for value in args.exclude_category}
+    if excluded_categories:
+        paths = [
+            path
+            for path in paths
+            if str(json.loads(path.read_text(encoding="utf-8")).get("source_category", "")).casefold()
+            not in excluded_categories
+        ]
     if args.file:
         wanted = {Path(value).stem for value in args.file}
         paths = [path for path in paths if path.stem in wanted]
